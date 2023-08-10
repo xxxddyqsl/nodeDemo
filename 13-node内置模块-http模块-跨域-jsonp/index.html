@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 
+        打开的页面地址http://127.0.0.1:5500/node-demo/13-node内置模块-http模块-jsonp/index.html
+        端口为：5500
+        启动 01-server-jsonp.js 本地的服务器 端口号定义的为：4399
+        两个端口号 不一致 因此跨域  但是srcipt标签src是不会有跨域的 使用jsonp测试接口
+     -->
+    jsonp - 接口调用
+</body>
+<script>
+    // 定义好 让后端调用的函数 接收后端传入的参数
+     function getuseinfo(msg){
+        console.log(msg)
+    }
+    // 访问的地址 - 启动的本地服务器地址 - 并且传入参数 定义好的函数名  getuseinfo 后端调用传入数据
+    var url= ' http://localhost:4399/api/use?callback=getuseinfo';
+    // 创建 script 标签
+    var htmlScript = document.createElement('script')
+    // 创建 script 标签 src为 本地服务器地址  因此会发起请求
+    htmlScript.src= url;
+    document.body.appendChild(htmlScript)
+   
+</script>
+</html>
