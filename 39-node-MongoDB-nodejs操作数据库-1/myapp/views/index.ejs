@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>
+    <%= title %>
+  </title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+
+<body>
+  <h1>MongoDB 数据库 - 通过 nodejs操作： 增、 删、改、查 的案例演示 </h1>
+  <div>
+    <div>
+      用户名：<input type="text" id="username">
+    </div>
+    <div>
+      密码：<input type="password" id="userpassword">
+    </div>
+    <div>
+      年龄：<input type="number" id="userage">
+    </div>
+    <button onclick="register()">注册</button>
+  </div>
+</body>
+<script>
+    window.onload=()=>{
+      
+    }
+    function getParams(){
+      return {
+        username:document.querySelector('#username').value,
+        userpassword:document.querySelector('#userpassword').value,
+        userage:document.querySelector('#userage').value,
+      }
+    }
+    function register(){
+      let params = getParams();
+      console.log(params)
+      fetch('/api/user/register',{
+        method:'POST',
+        body:JSON.stringify(params),
+        headers:{'Content-Type':'application/json'},// 请求头信息配置 告诉后端传入的参数是什么格式(当前为application/json JSON字符串格式) 按什么格式解析参数
+      }).then(res=>{
+        //  接口返回的为json数据 直接 return res.json(); 按JSON的格式去解析返回数据 具体案例  14-node内置模块-http模块-跨域-cors 中有描述
+        return res.json();
+      }).then(res=>{
+        console.log(res);
+
+      })
+    }
+</script>
+</html>
