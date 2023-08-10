@@ -1,0 +1,42 @@
+当前使用的 MongoDB 可视化工具为：Robo3t
+下载地址 ： https://blog.robomongo.org/studio3t-free/ 拉到底部 选择： Robo 3T Windows .zip  进行下载
+
+当前使用的 可视化工具为 robo3t-1.4.4-windows-x86_64-e6ac9ec5.zip 压缩包
+
+安装+使用流程:
+
+1： 双击 robo3t.exe
+2： 选择 I agree 同意  点击 next 下一步
+3： 点击"Finish" 按钮(用户名、邮箱、手机号……可以不填写，直接 Finish) 进入界面
+4： 点击 Create 创建 链接，弹出 Connection Setting 页面，输入连接地址（默认为：localhost） 和 端口号（默认为：27017） 点击 Save 按钮。
+5： 点击 Connect 按钮进行连接
+6： 此时就可以 看到左侧栏 本地 MongoDB 的数据库 如自己创建的 xingxin_test 数据库
+7： 在 xingxin_test 数据库下 collections （集合文件夹）下有自己创建的两个 users、news （ 表 或者在MongoDB非关系型数据库中叫集合：collection ）
+8： 双击 即可看到 users 表中有什么数据， 当前users 可见之前 创建插入的 12条 数据 ，例如： 对某一条数据 右键 delete 删除 然后在 MongoDB 启动的客户端（ .\mongo.exe ）使用命令行 db.users.find() 查询 可见确实少了一条数据
+执行 db.users.find() 终端输出：
+                            { "_id" : ObjectId("64ccae60096d0763eb92c67a"), "username" : "小明", "age" : 18 }
+                            { "_id" : ObjectId("64ccb0f2096d0763eb92c67c"), "username" : "小红", "age" : 22 }
+                            { "_id" : ObjectId("64ccb0f2096d0763eb92c67d"), "username" : "小花", "age" : 20 }
+                            { "_id" : ObjectId("64d05eece3a439a763261afb"), "username" : "小方", "age" : 18 }
+                            { "_id" : ObjectId("64d090bde3a439a763261afc"), "username" : "测试小明2", "age" : 18 }
+                            { "_id" : ObjectId("64d1ed1ae3a439a763261afe"), "username" : "aaa", "age" : 20 }
+                            { "_id" : ObjectId("64d1ed1ae3a439a763261aff"), "username" : "bbb", "age" : 21 }
+                            { "_id" : ObjectId("64d1ed1ae3a439a763261b00"), "username" : "ccc", "age" : 22 }
+                            { "_id" : ObjectId("64d1ed1ae3a439a763261b01"), "username" : "ddd", "age" : 23 }
+                            { "_id" : ObjectId("64d1ed1ae3a439a763261b02"), "username" : "eee", "age" : 24 }
+                            { "_id" : ObjectId("64d1ed1ae3a439a763261b03"), "username" : "fff", "age" : 25 }
+
+因此将来 使用node 操作数据库 进行 增，删，改，查等操作 使用 可视化工具 一看就知道。
+
+相对来说 很少 在可视化工具中 操作数据 当然也可以在可视化工具中进行 操作如：
+1：修改 "username" = "fff" 的数据 将其改为 "username" = "fff测试"，
+    1-1：在该条数据 右键 选择 edit Document 弹出修改窗口
+    1-2：将fff 编辑为 fff测试
+    1-3：点击 Save 按钮 保存
+    1-4： 在 MongoDB 启动的客户端（ .\mongo.exe ）使用命令行 db.users.find() 查询数据 验证 是否修改成功
+
+2：添加
+    2-1： 右键时 （可在表数据的空白处 或 在某一条数据上 都可以 ） 选择 insert Document 弹出添加窗口
+    2-2： 编辑数据 {username:'ggg',age:25}
+    2-3： 点击 Save 按钮 保存
+    2-4： 在 MongoDB 启动的客户端（ .\mongo.exe ）使用命令行 db.users.find() 查询数据 验证 是否添加成功
