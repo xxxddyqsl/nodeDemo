@@ -32,15 +32,14 @@ server.on('request',(req,res)=>{
         访问的服务器的地址为：http://localhost:4399/api/home?id=111&name=cc
 
         node内置url模块 parse(url,Boolean) 方法：
-        参数1:传入url解析url路径信息
-        参数2:Boolean，传true 将 解析出来的url后跟着的参数 转为json数据 如：
+        参数1: 类似为 string， 传入url解析url路径信息
+        参数2: 类似为Boolean， 传true 将 解析出来的url后跟着的参数 转为json数据 如：
         query: [Object: null prototype] { id: '111', name: 'cc' }
         默认为字符串 query: 'id=111&name=cc',
 
         pathname 解析出来的 路径 如'/api/home' ，'/home' 等
         query 解析出来的url后跟着的参数
     */
-   
     const { pathname,query } = url.parse(req.url,true);
     console.log(url.parse(req.url,true),query.id,query.name);
     // res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
@@ -76,7 +75,8 @@ var obj_url={
     path: '/video/BV1rA4y1Z7fd/?p=12&spm_id_from=pageDriver&vd_source=0bf9d806a056be53cb6b8e1a62156965',
     href: '/video/BV1rA4y1Z7fd/?p=12&spm_id_from=pageDriver&vd_source=0bf9d806a056be53cb6b8e1a62156965'
   }
-  console.log('format函数=>',url.format(obj_url));
+//   format(urlObject: url.URL, options?: url.URLFormatOptions | undefined) 参数1：urlObject对象结构数据 参数2：options 编码格式选项配置
+  console.log('format函数=>',url.format(obj_url,{unicode:true}));
 
 /*
    url.resolve 通过 url模块内的 resolve 函数 进行 url的地址拼接
@@ -89,10 +89,12 @@ var obj_url={
 
     除 如域名http://example.com这种 纯粹的路径 加/（路径会连起来）,不加/（前面一段路径的最后一个替换掉）的区别
 */
-// 如 前面一段路径'/one/two/three'  后面还有一段路径'four' 但是前面一段路径最后一个three 后没有加/ 所以three会被替换 打印为 /one/two/four
+//a  打印为 /one/two/four 如 前面一段路径'/one/two/three'  后面还有一段路径'four' 但是前面一段路径最后一个three 后没有加/ 所以three会被替换
 var a = url.resolve('/one/two/three','four');  //注意前面一段路径最后一个three 最后 加/,不加/的区别
-// / 如 前面一段域名 'http://example.com  后面还有一段路径'one'
-var b = url.resolve('http://example.com','one'); 
+// b  打印为  http://example.com/one
+var b = url.resolve('http://example.com','one');// 如 前面一段域名 'http://example.com  后面还有一段路径'one'
+
+// c  打印为 :http://example.com/two
 var c = url.resolve('http://example.com/one/','/two'); //  后面还有一段路径'/two'加/ 前一段不管有没有加/ 前一段路径都会被替换一直到域名为止  注意最后 加/,不加/的区别
 
 console.log('A:前面一段路径最后一个three 后没有加/ 被four替换掉:'+a);
