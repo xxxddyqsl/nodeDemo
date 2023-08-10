@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="wrapper">
+        <h1>
+            Home- 后端服务器渲染 html - index.js 配置app.set("view engine","html"); 通过 app.engine('html',require('ejs').renderFile) 对这个自定义的html引擎 进行特殊的引擎说明 按ejs的模块 进行渲染
+        </h1>
+        <%if(Code==0){%>
+            <div><%-mytext%></div>
+            <br>
+            <div>原文输出更加安全不会执行脚本或者解析html标签：<%=myhtml%></div>
+        <%}%>
+        <ul class="list">
+
+        </ul>
+    </div>
+</body>
+<script>
+    window.onload=()=>{
+        console.log(window.location)
+        // 截取url?后的参数字符串 + 转译（防止存在中文被编译）
+        let msgString = decodeURI(window.location.href.split('?')[1]);
+        // 字符串 转 数组
+        let msgArr = msgString.split('&')
+        let data={};
+        msgArr.forEach((param)=>{
+            // 以=分割 数组每一项 的 字符串 取出key val
+            let [key,val]=param.split('=');
+            data[key]=val;
+        })
+        console.log(data);
+        postSubmit(data)
+    }
+    // post 请求
+    function postSubmit(data) { 
+        // w3c 新增的 fetch （一般说 fetch 是 XMLHttpRequest 的替代方案） 用于发起ajax请求网络资源
+        //   post 请求 携带参数 fetch默认为get请求方式
+        fetch(`/home/list`,{
+            method: 'POST',
+            body:JSON.stringify({
+                id:data.id,
+            }),//传入参数
+            headers:{'Content-Type':'application/json'},// 请求头信息配置 告诉后端传入的参数是什么格式(当前为application/json JSON字符串格式) 按什么格式解析参数
+        }).then(res => {
+          //  可以 取到 请求头 和 响应体
+        //   console.log(res);
+        // 知道后台/login接口返回的为json数据 直接 return res.json(); 按JSON的格式去解析返回数据
+           return res.json();
+        }).then(res=>{
+        // 可以 取到 返回的数据
+            console.log(res);
+            if(res.Code==0){
+                render(res.Data.EmojiData.Emotions)
+            }
+        }).catch(error => {
+            console.log(error);
+        })
+    }
+        // 创建渲染
+        function render(data){
+            //通过map 将数组中的每一个元素进行映射 返回值是什么就映射成什么 当前返回的是字符串模板  循环创建字符串模板 返回数组形式的字符串模板
+            var list = data.map(item=>`<li>${item.emoji+item.title}</li>`);
+            console.log(list);
+            let node = document.querySelector('.list');
+            // 数组形式的字符串模板 转为字符串 变为 DOM 节点
+            let html = list.join('');
+            //  添加到 ul DOM节点中
+            node.innerHTML=html;
+        }
+</script>
+</html>

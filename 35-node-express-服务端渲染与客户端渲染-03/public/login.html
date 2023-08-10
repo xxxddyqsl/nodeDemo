@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>login</title>
+    <!--
+        不要将 静态资源文件目录 public 有写进去，
+        因为在后台配置（app.use(express.static('public'));），
+        静态资源文件目录时 app.use就没有path路径 因此配置完 public 静态资源文件目录指向的是在 http://localhost:4399 下
+
+        因此url指向的 http://localhost:4399/css/login.css 即可访问 在引用时 href="/css/login.css" 即可，其实这样写 走的就是 http://localhost:4399/css/login.css
+
+        当然如果你希望所有通过 express.static('static') 访问的文件都存放在一个"虚拟(virtual)"目录(即目录根本不存在)下面
+        如后台配置（app.use('/static',express.static('static'));），在配置静态资源文件目录时 app.use就有path路径'/static' ,
+        因此 static静态资源文件目录指向的是在 http://localhost:4399/static 下,可以通过 http://localhost:4399/static/css/test.css 访问
+
+        具体案例解释 32-node-express-托管静态资源文件 下 index.js 中可见
+     -->
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="/static/css/test.css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <div>
+            login- 前后端分离，BSR（前端中组装页面） 当前 使用的就是前后端分离
+        </div>
+        <div>
+            <div>
+                <label>用户名：</label>
+                <input type="text" class="useName" placeholder="小明" value="小明" />
+                <!-- 正确用户名 usexing -->
+            </div>
+            <div>
+                <label>密码：</label>
+                <input type="password" class="usePassword" placeholder="123456" value="123456"/>
+                <!-- 正确密码 123456 -->
+            </div>
+            <button onclick="getSubmit()">getSubmit</button>
+            <button onclick="postSubmit()">postSubmit</button>
+        </div>
+    </div>
+</body>
+<script src="/js/login.min.js"></script>
+<!-- fetch() 的第二个参数
+        fetch 的第二个参数是一个 init 配置对象。配置项如下：
+        fetch('http://localhost:8000/getInfo',{
+            method: 'get', 
+            mode: 'XXX',
+            credentials: 'XXX',
+            // ...省略
+        })
+        method: 请求方法，如 get、post、delete 等
+        headers: 请求头信息配置
+        body: 请求体信息，注意 get 和 head 请求不能包含 body 信息。
+        mode: 请求模式，决定发起的是同源请求还是跨域请求，可选项：cors、no-cors、same-origin
+        credentials: 请求的 credentials，为了在当前域名内自动发送 cookie，可选项: omit、same-origin、include
+        cache: 请求的缓存模式，可选项：default、no-store、reload、no-cache、force-cache、only-if-cached
+        redirect: 可用的 redirect 模式，可选项：follow、error、manual
+        referrer: 设置请求来源，可用于资源防盗
+        referrerPolicy: 用于指定 http 头部 referer 字段的值 -->
+<script>
+    function getParams(){
+        return{
+            useName: document.querySelector('.useName'),
+            usePassword: document.querySelector('.usePassword'),
+        };
+    };
+    var useName = document.querySelector('.useName');
+    var usePassword = document.querySelector('.usePassword');
+    // get 请求
+    function getSubmit() {
+        let {useName,usePassword} = getParams();
+        console.log(useName.value, usePassword.value)
+        // w3c 新增的 fetch （一般说 fetch 是 XMLHttpRequest 的替代方案） 用于发起ajax请求网络资源
+        // 测试1 - get 请求 携带参数 fetch默认为get请求方式
+        fetch(`/login?usename=${useName.value}&password=${usePassword.value}`,{method: 'get'}).then(res => {
+          // 可以 取到 请求头 和 响应体
+        //   console.log(res);
+           return res.json();
+        }).then(res=>{
+        // 可以 取到 返回的数据
+            console.log(res);
+        }).catch(error => {
+            console.log(error);
+        })
+    };
+    // post 请求
+    function postSubmit() {
+        let {useName,usePassword} = getParams();
+        console.log(useName.value, usePassword.value)
+        // w3c 新增的 fetch （一般说 fetch 是 XMLHttpRequest 的替代方案） 用于发起ajax请求网络资源
+        // 测试1 - get 请求 携带参数 fetch默认为get请求方式
+        fetch(`/login`,{
+            method: 'POST',
+            body:JSON.stringify({
+                usename:useName.value,
+                password:usePassword.value
+            }),//传入参数
+            headers:{'Content-Type':'application/json'},// 请求头信息配置 告诉后端传入的参数是什么格式(当前为application/json JSON字符串格式) 按什么格式解析参数
+        }).then(res => {
+          //  可以 取到 请求头 和 响应体
+        //   console.log(res);
+        // 知道后台/login接口返回的为json数据 直接 return res.json(); 按JSON的格式去解析返回数据
+           return res.json();
+        }).then(res=>{
+        // 可以 取到 返回的数据
+            console.log(res);
+            if(res.Code === 0){
+                // 登录成功 - 跳转 首页
+                location.href = './home.html'
+            }else{
+                var node = document.createElement('div');
+                node.className='login-err'
+                node.innerText=res.Message;
+                // console.log(node)
+                document.querySelector('body').appendChild(node)
+            }
+        }).catch(error => {
+            console.log(error);
+        })
+    }
+</script>
+
+</html>

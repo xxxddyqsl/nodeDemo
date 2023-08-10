@@ -1,0 +1,48 @@
+express-generator 脚手架 快捷构建 Express 项目
+1：安装命令：
+npm install -g express-generator
+
+命令查看版本详情  检测一下是否能使用
+2：执行命令：
+express -h
+
+可以使用 express 命令 来快速从创建一个项目目录 （如：myapp文件夹）
+3：执行命令：
+// express  myapp  注释：默认的安装views 模板文件是基于 jade模板  对前端不太友好
+
+express  myapp --view=ejs  注释：创建基于ejs模板的应用骨架 之前学习的 模板文件是基于ejs模板 并且对前端相对友好
+
+4. 初始化后的项目文件的目录结构如下
+app.js 应用的主入口
+bin 启动脚本
+node_modules 依赖的模块
+package.json node 模块的配置文件
+public 静态资源，如 css、js 等存放的目录
+routes 路由规则存放的目录
+views 模板文件存放的目录 （默认的模板文件是基于 jade模板 的 对前端不太友好，并且之前学习的 模板文件是基于ejs模板）
+
+因此 在 3：快速创建项目文件夹时 可以 第3步的搭建命令加上 --view=ejs 如： express  myapp --view=ejs
+
+5：安装所有的依赖包
+cd myapp 进入 myapp 文件夹
+
+安装所有的依赖包-执行命令：
+yarn install 或 npm install
+
+
+6. 启动项目服务器
+
+第一种启动方法：npm start
+
+第二种启动方法: package.json 中的 start 字段启动 node ./bin/www （可以将 package.json 内的start 命令修改 为 "start": "nodemon ./bin/www" ，修改代码就可以热更新了 否则默认的 "start": "node ./bin/www"修改代码 需要重新启动命令 yarn start）
+
+
+7：文件介绍：
+1： bin文件夹下的www 是文件入口 主要作用是：
+    1-1：创建 http 服务器（server）
+    1-2：监听3000 端口号 ，
+    只是对于端口号 做了发生错误时的回调（onError 函数） ，
+    把这些错误的回调 进行语义化处理（就是之前的报错可能是一堆的英文错误 ，现在是根据不同的错误码显示一个比较友好的提示）。
+
+
+8：核心代码在 app.js - app.js中详细注释讲解  在该文件中 用到的代码 如：中间件 ，模块 等等

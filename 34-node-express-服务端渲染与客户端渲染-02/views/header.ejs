@@ -1,0 +1,23 @@
+<style>
+    .header{
+        display: flex;
+        padding: 10px;
+        text-align: center;
+        border: 1px solid red;
+    }
+    .banner,.map{
+        margin: 10px;
+        border: 1px solid;
+    }
+</style>
+
+<header  class="header">
+    <%if(showBanner){%>
+        <div class="banner">banner图片</div>
+    <%}%>
+    <ul>
+        <li onclick="fileOnClick()">首页1</li>
+        <li>首页2</li>
+        <li>首页3</li>
+    </ul>
+</header>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+ 
+</head>
+
+<body>
+    <!-- url 访问地址 http://localhost:4399/home?id=f43245bd9824430b973fbf57320bb38b&name=%E5%B0%8F%E6%98%8E -->
+    <!-- 导入公共的内容 - 头部及传参 -->
+    <%-include('./header.ejs',{showBanner:true})%>
+    <h1>home - 服务端渲染页面 通过ejs 库 - 语法如下：</h1>
+    <% if(Code==0){%>
+        <div><span>后端渲染页面语法=></span><%-mytext%></div>
+        <br>
+        <div>原文输出更加安全不会执行脚本或者解析html标签：<%=myhtml%></div>
+        <div><%-myhtml%></div>
+        <ul>
+            <!-- <%# console.log(Data) %> -->
+            <%var msg=Data.EmojiData.Emotions;
+            for(let i in msg){%>
+                <li>
+                    <%=msg[i].emoji%>--<%=msg[i].title %>
+                </li>
+            <%}%>
+
+        </ul>
+    <% } %>
+    <!-- 导入公共的内容 - 底部 -->
+    <%-include('./footer.ejs')%>
+</body>
+<script>
+    function fileOnClick(){
+        alert(111)
+    }
+</script>
+</html>

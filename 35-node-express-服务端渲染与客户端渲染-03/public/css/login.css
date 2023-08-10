@@ -1,0 +1,16 @@
+div{
+    background-color: cornflowerblue;
+}
+.login-err{
+    display: inline-block;
+    margin: 0 auto;
+    max-width: 9%;
+    color: red;
+    padding: 10px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    border: 1px solid red;
+    background-color: #fff;
+
+}

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>login</title>
+    <!--
+        不要将 静态资源文件目录 public 有写进去，
+        因为在后台配置（app.use(express.static('public'));），
+        静态资源文件目录时 app.use就没有path路径 因此配置完 public 静态资源文件目录指向的是在 http://localhost:4399 下
+
+        因此url指向的 http://localhost:4399/css/login.css 即可访问 在引用时 href="/css/login.css" 即可，其实这样写 走的就是 http://localhost:4399/css/login.css
+
+        当然如果你希望所有通过 express.static('static') 访问的文件都存放在一个"虚拟(virtual)"目录(即目录根本不存在)下面
+        如后台配置（app.use('/static',express.static('static'));），在配置静态资源文件目录时 app.use就有path路径'/static' ,
+        因此 static静态资源文件目录指向的是在 http://localhost:4399/static 下,可以通过 http://localhost:4399/static/css/test.css 访问
+
+        具体案例解释 32-node-express-托管静态资源文件 下 index.js 中可见
+     -->
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="/static/css/test.css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <div>
+            login-  后端服务器渲染 html - index.js 配置app.set("view engine","html"); 通过 app.engine('html',require('ejs').renderFile) 对这个自定义的html引擎 进行特殊的引擎说明 按ejs的模块 进行渲染
+        </div>
+        <form action="/login/validate" method="POST">
+            <%if(Code){%>
+                <div><%=Code%></div>    
+            <%}%>
+            <div >
+                <label>用户名：</label>
+                <input type="text" class="useName" placeholder="小明"  name="usename" value="小明" />
+                <!-- 正确用户名 usexing -->
+            </div>
+            <div>
+                <label>密码：</label>
+                <input type="password" class="usePassword" placeholder="123456" name="usepassword" value="123456"/>
+                <!-- 正确密码 123456 -->
+            </div>
+            <button type="submit">form提交数据登录-服务端进行重定向</button>
+        </form>
+
+        <button onclick="getSubmit()">getSubmit-ajax提交登录-需要客户端进行重定向- 因为 AJAX 调用永远不会改变浏览器显示的网页所以需要前端在客户端修改url地址进行重定向 </button>
+        <!-- AJAX 调用永远不会改变浏览器显示的网页。它们会向您的Javascript返回一个结果。如果服务器返回一个302，而您没有要求fetch()跟随重定向，那么您将得到302响应，您可以直接从该响应中读取位置标头。如果您确实要求fetch()跟随重定向（并且安全性允许），然后它会跟随重定向并将新页面的内容返回到您的Javascript。无论哪种方式，响应都会到达您的Javascript，并且不会更改浏览器中显示的内容。
+如果您希望 AJAX 调用更改浏览器中显示的网页，则必须在JavaScript中将window.location设置为一个新的URL，该URL将从Ajax调用接收302重定向响应。 -->
+    </div>
+</body>
+<script src="/js/login.min.js"></script>
+<!-- fetch() 的第二个参数
+        fetch 的第二个参数是一个 init 配置对象。配置项如下：
+        fetch('http://localhost:8000/getInfo',{
+            method: 'get', 
+            mode: 'XXX',
+            credentials: 'XXX',
+            // ...省略
+        })
+        method: 请求方法，如 get、post、delete 等
+        headers: 请求头信息配置
+        body: 请求体信息，注意 get 和 head 请求不能包含 body 信息。
+        mode: 请求模式，决定发起的是同源请求还是跨域请求，可选项：cors、no-cors、same-origin
+        credentials: 请求的 credentials，为了在当前域名内自动发送 cookie，可选项: omit、same-origin、include
+        cache: 请求的缓存模式，可选项：default、no-store、reload、no-cache、force-cache、only-if-cached
+        redirect: 可用的 redirect 模式，可选项：follow、error、manual
+        referrer: 设置请求来源，可用于资源防盗
+        referrerPolicy: 用于指定 http 头部 referer 字段的值 -->
+<script>
+    function getParams(){
+        return{
+            useName: document.querySelector('.useName'),
+            usePassword: document.querySelector('.usePassword'),
+        };
+    };
+    var useName = document.querySelector('.useName');
+    var usePassword = document.querySelector('.usePassword');
+    // get 请求
+    function getSubmit() {
+        let {useName,usePassword} = getParams();
+        console.log(useName.value, usePassword.value)
+        // w3c 新增的 fetch （一般说 fetch 是 XMLHttpRequest 的替代方案） 用于发起ajax请求网络资源
+        // 测试1 - get 请求 携带参数 fetch默认为get请求方式
+        fetch(`/login/validate?usename=${useName.value}&usepassword=${usePassword.value}`,{
+            method: 'get',
+        }).then(res=>{
+        // 可以 取到 返回的数据
+            console.log('测试',res);
+            if(res.status === 200){
+                // 登录成功 - 跳转 首页
+                location.href = res.url;
+            }else{
+                var node = document.createElement('div');
+                node.className='login-err'
+                node.innerText=res.Message;
+                // console.log(node)
+                document.querySelector('body').appendChild(node)
+            }
+        }).catch(error => {
+            console.log(error);
+        })
+    }
+</script>
+
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!--  index.js 中 将public 文件目录配置静态资源文件目录中间件  因此引入的css访问的地址 只需要写成/css/login.css 找根目录下的（请求为：http://localhost:4399/css/login.css） 详细解释案例 index.js中可见-->
+    <link rel="stylesheet" href="/css/login.css">
+    <style>
+        li{
+            padding: 3px;
+            margin:  10px 0px;
+            border: 1px solid red;
+        }
+    </style>
+</head>
+<body>
+      <!-- 导入公共的内容 - 头部 -->
+      <%-include('./header.ejs')%>
+    <h1>login - 服务端渲染页面 通过ejs 库    - 语法如下：</h1>
+    <div><span>后端渲染页面语法=></span><%-mytext%></div>
+    <div>原文输出更加安全不会执行脚本或者解析html标签：<%=myhtml%></div>
+    <h2>后端渲染页面 已经不需要使用ajax进行提交数据 使用 form表单方式进行提交数据 </h2>
+    <!-- action="/login/validate" 提交的地址  method="POST" 请求方式当前为 POST请求 也可以为get 但是当前是账号密码 因此post方式更加安全 -->
+    <form action="/login/validate" method="POST">
+        <div>
+            <!-- name 值是必须的 否则提交时 取不到数据 -->
+            用户名：<input type="text" placeholder="小明" name="usename"/>
+        </div>
+        <div>
+            密码：<input type="password" placeholder="123456" name="usepassword"/>
+        </div>
+        <!-- type="submit"固定的方式 点击按钮 就会向这个地址： http://localhost:4399/login/validate?usename=%E5%B0%8F%E6%98%8E&usepassword=123456 发起请求 且取出数据拼接好--->
+        <button type="submit">登录</button>
+    </form>
+    <br>
+    <%if(Code==0&&Data.length>0){%>
+        <div> 服务端渲染 返回的数据-Code：<%=Code%>，数据长度：<%=Data.length%></div>
+        <ul>
+            <%for(let i in Data){%>
+                <li>序号：<%=Number(i)%> name：<%=Data[i].name%>---<%=Data[i].title%></li>
+            <%}%>
+        </ul>
+    <%}else{%>
+        <b style="color:red;"><%=Error%></b>
+    <%}%>
+
+    <!-- 导入公共的内容 - 底部 -->
+    <%-include('./footer.ejs')%>
+</body>
+</html>
