@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .content-box {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .item-box {
+            max-width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin: 10px;
+        }
+
+        .item-box span {
+            font-size: 14px;
+            color: #333;
+            border-radius: 3px;
+            padding: 6px 16px;
+            background-color: bisque;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 
+       一、什么是 fetch?
+        在前端的发展历程中用于请求网络资源的方式主要有三种：从原生的 XMLHttpRequest 到 jQuery 的 Ajax 再到现在主流的 axios，
+        其中 Ajax 和 axios 都是对 XMLHttpRequest 的封装（本质上都是使用 XMLHttpRequest 方法获取网络资源），
+        这些封装库让开发者对 XMLHttpRequest 的使用变得更简单高效。
+        然而 fetch 的推出使开发者对网络资源的异步请求多了一种可选方案（一般说 fetch 是 XMLHttpRequest 的替代方案），
+        注意 fetch 不是对 XMLHttpRequest 的封装，它是 JavaScript 提供的原生的全局方法。
+    二、fetch 的简单使用
+        fetch(url) , url 为请求的网络资源路径。fetch() 返回的结果包裹在一个 Promise 对象里面,
+         故可使用 .then 接收, res 是 fetch 包装的一个原始对象，
+         如果想要拿到后端返回的结果则需要使用 res.json() 获取到使用 Promise 包装的后端返回的（响应体 body）数据，
+         所以 res2 才是后端返回的原始数据。
+
+         fetch('http://localhost:4399/api/use?name=xiaoming&id=cc').then(res=>{
+            console.log(res);
+            return res.json()
+        })
+        .then(res2=>{
+            console.log(res2)
+        })
+        .catch(error=>{
+            console.log(error);
+        })
+    三、fetch() 的第二个参数
+        fetch 的第二个参数是一个 init 配置对象。配置项如下：
+        fetch('http://localhost:8000/getInfo',{
+            method: 'get', 
+            mode: 'XXX',
+            credentials: 'XXX',
+            // ...省略
+        })
+        method: 请求方法，如 get、post、delete 等
+        headers: 请求头信息配置
+        body: 请求体信息，注意 get 和 head 请求不能包含 body 信息。
+        mode: 请求模式，决定发起的是同源请求还是跨域请求，可选项：cors、no-cors、same-origin
+        credentials: 请求的 credentials，为了在当前域名内自动发送 cookie，可选项: omit、same-origin、include
+        cache: 请求的缓存模式，可选项：default、no-store、reload、no-cache、force-cache、only-if-cached
+        redirect: 可用的 redirect 模式，可选项：follow、error、manual
+        referrer: 设置请求来源，可用于资源防盗
+        referrerPolicy: 用于指定 http 头部 referer 字段的值
+     -->
+</body>
+<script>
+    // 获取 小米优品页面 - 数据 post请求
+    // var url = "https://m.xiaomiyoupin.com/mtop/market/search/placeHolder"// 小米优品接口地址
+    var url = 'http://localhost:4399/api/use'
+    // w3c 新增的 fetch （一般说 fetch 是 XMLHttpRequest 的替代方案） 用于发起ajax请求网络资源
+    fetch(url).then(res => {
+        // 可以 取到 请求头 和 响应体
+        console.log(res);
+        return res.json()
+    }).then(res => {
+        // 可以 取到 返回的数据
+        console.log(res);
+
+        var html = document.createElement('div');
+        html.className = 'content-box';
+        function htmlItem(obj) {
+            var str = "";
+            res.data.words.map(item => {
+                str += "<div class='item-box' >";
+                    // if(item.config&&item.config.jumpUrl){
+                    //     str += " <img src='" + item.config.jumpUrl+ "' style='max-width:100px;' />";
+                    // }
+                str+="<span>" + item.queryName + "</span></div>";
+            })
+            return str;
+        }
+        let text = htmlItem(res);
+        // console.log(text)
+        html.innerHTML = text;
+        document.body.appendChild(html);
+    })
+</script>
+
+</html>
