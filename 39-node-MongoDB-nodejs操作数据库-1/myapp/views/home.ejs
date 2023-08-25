@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/home.css">
+</head>
+
+<body>
+    <div class="wrapper  gg-flex-2">
+        <div class="headers">home</div>
+        <div class="content gg-flex-1 gg-flex-2">
+
+        </div>
+        <ul class="footer gg-flex-3">
+            <li>首页</li>
+            <li>列表</li>
+            <li>我的</li>
+        </ul>
+
+    </div>
+</body>
+<script>
+    window.onload = () => {
+        var content = document.querySelector('.content');
+        // 初始化 选项卡 -默认显示 首页注册
+        navInit('首页', content);
+        var ULnode = document.querySelector('.footer');
+        ULnode.onclick = function (elem) {
+            if (elem.target.nodeName == 'LI') {
+                let text = elem.target.textContent;
+                // 切换选项卡
+                navInit(text, content)
+            }
+
+        }
+    }
+    function showEdit(elem, id) {
+        let node = document.querySelector(".editInfo");
+        node.innerHTML = modifyTemplate(id);
+        node.style.display == 'none' && (node.style.display = 'block');
+        // node && node.style.display == 'none' ? (node.style.display = 'block') : (node.style.display = 'none');
+        console.log(elem.target)
+        let uid = id != undefined && id ? id : getCookie().uid;
+        console.log(uid, id != undefined, getCookie())
+        if (uid) {
+            let node = document.querySelector(".userid");
+            node.innerHTML = ` 用户uid：${uid}`;
+        }
+    }
+    function getParams() {
+        return {
+            username: document.querySelector('#username').value,
+            password: document.querySelector('#password').value,
+            age: document.querySelector('#age').value,
+        }
+    }
+    function getCookie() {
+        // 获取 cookie
+        let cookieData = {};
+        document.cookie.split(';').forEach((param) => {
+            // 以=分割 数组每一项 的 字符串 取出key val
+            let [key, val] = param.split('=');
+            key = key.replace(/\s+/g, "");// 去除空格
+            cookieData[key] = val;
+        })
+        return cookieData;
+    }
+    // 修改 - 个人信息
+    function update(uid) {
+        uid = uid || getCookie().uid;
+        let data = getParams();
+        fetch(`/api/user/update/${uid}`, {
+            method: 'POST',
+            body: JSON.stringify(data),//传入参数
+            headers: { 'Content-Type': 'application/json' },// 请求头信息配置 告诉后端传入的参数是什么格式(当前为application/json JSON字符串格式) 按什么格式解析参数
+        }).then(res => res.json()).then(res => {
+            alert(`${res.Message},请重新刷新页面`)
+            console.log(res)
+        })
+    }
+    // 删除 - 个人信息 数据
+    function deleteUser(uid) {
+        let result = confirm("你确定要删除吗?");
+        if (result) {
+            uid = uid || getCookie().uid;
+            fetch(`/api/user/delete/${uid}`, {
+                method: 'get',
+                // body: JSON.stringify(data),//传入参数
+                headers: { 'Content-Type': 'application/json' },// 请求头信息配置 告诉后端传入的参数是什么格式(当前为application/json JSON字符串格式) 按什么格式解析参数
+            }).then(res => res.json()).then(res => {
+                alert(`${res.Message},请重新刷新页面`)
+                console.log(res)
+            })
+        }
+
+    }
+    let paging = {
+        total: 0,// 总数据条数
+        pageNumber: 1,// 当前第几页
+        pageSize: 10,// 一页 多少条数据
+    }
+    // 获取注册 列表
+    function getList(content) {
+        fetch(`/api/user/list`, {
+            method: 'POST',
+            body: JSON.stringify(paging),//传入参数
+            headers: { 'Content-Type': 'application/json' },// 请求头信息配置 告诉后端传入的参数是什么格式(当前为application/json JSON字符串格式) 按什么格式解析参数
+        }).then(res => res.json()).then(res => {
+            console.log(res);
+            paging.total = res.Data.Total;// 总数据条数
+            let list = res.Data.list.map((item, index) => {
+                return `
+                <tr>
+                                    <td>${item._id}</td>
+                                    <td>${item.uid}</td>
+                                    <td>${item.username}</td>
+                                    <td>${item.age}</td>
+                                    <td>
+                                        <button onclick=showEdit(event,'${item.uid}')>
+                                            修改
+                                        </button>
+                                        <button onclick=deleteUser('${item.uid}')>
+                                            删除
+                                        </button>
+                                    </td>
+                                </tr>
+                `
+                // return `<li class="gg-flex-3" id="${item.uid}">
+                //             <div class="liItem">序号:${index}</div>
+                //             <div class="liItem">username:${item.username}</div><div class="liItem">age:${item.age}</div> 
+                //             <button onclick=showEdit(event,'${item.uid}')>
+                //                 修改
+                //             </button>
+                //             <button onclick=deleteUser('${item.uid}')>
+                //                 删除
+                //             </button>
+                //         </li>`
+            });
+            // 页数-向上取整
+            let pages = Math.ceil(paging.total / paging.pageSize);
+            let pagesbtn = '';
+            for (let i = 1; i <= pages; i++) {
+                // console.log(i)
+                pagesbtn += `<button onclick=pagingNum('${i}')>${i}</button>`;
+            }
+            let template = `<div class="editInfo"  style="display:none;">
+                            </div>
+                            <div class='list'>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <td>_id</td>
+                                            <td>uid</td>
+                                            <td>用户名</td>
+                                            <td>年龄</td>
+                                            <td>操作</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${list.join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="paging gg-flex-1">
+                                    <div style="color:red;">第 ${paging.pageNumber} 页</div>
+                                    ${pagesbtn}
+                                    <div>一页:${paging.pageSize} 条</div>
+                                    <div>总条数:${paging.total}</div>
+                                <button onclick=prevPage()>
+                                            上一页
+                                </button>
+                                <button onclick=nextPage()>
+                                            下一页
+                                </button>
+                            </div>
+                            `;
+
+            content.innerHTML = template;
+        })
+    }
+    //  注册 + 修改 html模板
+    function modifyTemplate(uid, btn) {
+        return `${!btn ? '<div class="userid gg-flex-3"> // 用户ID： </div>' : ''}
+                <div>
+                    用户名：<input type="text" id="username">
+                </div>
+                <div>
+                    密码：<input type="password" id="password">
+                </div>
+                <div>
+                    年龄：<input type="number" id="age">
+                </div>
+                ${btn ? btn : "<button onclick=update('" + uid + "')>提交</button>"}
+        `
+    }
+    // 选项卡
+    function navInit(text, content) {
+        let template;
+        switch (text) {
+            case '首页':
+                template = `<div>
+                                ${modifyTemplate('', '<button onclick="register()">注册</button>')}
+                            </div>`
+                content.innerHTML = template;
+                break;
+            case '列表':
+                return getList(content);
+            // template += `<div>列表</div>`
+            // break;
+            case '我的':
+                template = `<ul class='mine'>
+                                    <li>
+                                        <button class="setinfo" onclick='showEdit(event)'>点击修改个人信息（最近一次注册的）</button>
+                                        <div class="editInfo"  style="display:none;">
+                                        </div>
+                                    </li>
+                                </ul>`
+                content.innerHTML = template;
+                break;
+
+            default:
+                break;
+        }
+    }
+    // 首页-注册
+    function register() {
+        let params = getParams();
+        console.log(params)
+        fetch('/api/user/register', {
+            method: 'POST',
+            body: JSON.stringify(params),
+            headers: { 'Content-Type': 'application/json' },// 请求头信息配置 告诉后端传入的参数是什么格式(当前为application/json JSON字符串格式) 按什么格式解析参数
+        }).then(res => {
+            //  接口返回的为json数据 直接 return res.json(); 按JSON的格式去解析返回数据 具体案例  14-node内置模块-http模块-跨域-cors 中有描述
+            return res.json();
+        }).then(res => {
+            console.log(res);
+            alert(`${res.Message}`)
+        })
+    }
+    // 上一页
+    function prevPage() {
+        console.log(paging)
+        if (paging.pageNumber > 0) {
+            paging.pageNumber--;
+            let content = document.querySelector('.content');
+            getList(content)
+        } else {
+            return alert(`${paging.pageNumber},已至首页`)
+        }
+
+    }
+    // 下一页
+    function nextPage() {
+        // 页数-向上取整 - 最大页码
+        let pages = Math.ceil(paging.total / paging.pageSize);
+        if (paging.pageNumber < pages) {
+            paging.pageNumber++;
+            let content = document.querySelector('.content');
+            getList(content)
+        } else {
+            return alert(`${paging.pageNumber},已至尾页`)
+        }
+    }
+    // 直接 - 点击页码
+    function pagingNum(num) {
+        num = Number(num);
+        if (paging.pageNumber != num) {
+            paging.pageNumber = Number(num);
+            console.log(paging)
+            let content = document.querySelector('.content');
+            getList(content)
+        } else {
+            return alert(`当前已在第：${paging.pageNumber}页`)
+        }
+    }
+</script>
+
+</html>

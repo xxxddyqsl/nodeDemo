@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>
+    <%= title %>
+  </title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+
+<body>
+  <h1>MongoDB 数据库 - 通过 nodejs操作： 增、 删、改、查 的案例演示 </h1>
+  <div>
+    <div>
+      用户名：<input type="text" id="username">
+    </div>
+    <div>
+      密码：<input type="password" id="password">
+    </div>
+    <div>
+      年龄：<input type="number" id="age">
+    </div>
+    <button onclick="register()">注册</button>
+  </div>
+</body>
+<script>
+  function getCookie() {
+    // 获取 cookie
+    let cookieData = {};
+    document.cookie.split(';').forEach((param) => {
+      // 以=分割 数组每一项 的 字符串 取出key val
+      let [key, val] = param.split('=');
+      key = key.replace(/\s+/g, "");// 去除空格
+      cookieData[key] = val;
+    })
+    return cookieData;
+  }
+  function getParams() {
+    return {
+      username: document.querySelector('#username').value,
+      password: document.querySelector('#password').value,
+      age: document.querySelector('#age').value,
+    }
+  }
+  // 按照 和后端约定的 语义化规范 - RESTful风格规范 编写 请求
+  function register() {
+    let params = getParams();
+    console.log(params)
+    fetch('/api/user', {
+      method: 'POST',
+      body: JSON.stringify(params),
+      headers: { 'Content-Type': 'application/json' },// 请求头信息配置 告诉后端传入的参数是什么格式(当前为application/json JSON字符串格式) 按什么格式解析参数
+    }).then(res => {
+      //  接口返回的为json数据 直接 return res.json(); 按JSON的格式去解析返回数据 具体案例  14-node内置模块-http模块-跨域-cors 中有描述
+      return res.json();
+    }).then(res => {
+      console.log(res);
+      alert(`${res.Message}`)
+      if (res.Code == 0) {
+        getCookie()._id === res.Data._id? window.location.href='./home':alert(`当前_id 和 后端设置的cookie _id不一致 无法权限进入 home 页面`)
+      }
+    })
+  }
+</script>
+
+</html>

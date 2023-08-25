@@ -1,0 +1,106 @@
+APIDOC-API文档生成工具
+介绍：
+    apidoc 是一个简单的 RESTfulAPI 文档生成工具，它从代码注释中提取特定格式的内容生成文档，
+    支持诸如Go.Java、C++、Rust 等大部分开发语言，具体可使用 apidoc lang 命令行查看所有的支持列表。
+
+apidoc 拥有以下特点:
+    1.跨平台，linux、windows、macos 等都支持:
+    2.支持语言广泛，即使是不支持，也很方便扩展;
+    3.支持多个不同语言的多个项目生成一份文档;
+    4.输出模板可自定义;
+    5.根据文档生成mock 数据
+
+1：安装命令：全局安装
+    npm install -g apidoc
+
+2：在 vscode 应用商店 下载 ApiDoc Snippets v0.1.25
+就会有智能的代码提示（如输入 api 出现提示 ），进行快速生成注释 （ 安装好的 apidoc 模块会根据这些注释 来生成 接口文档）
+如输入 api 出现提示 apiDocumentation 回车 就会 快速生成如下注释（需要自己根据接口修改注释） ：
+    /**
+    * 
+    * @api {method} /path title
+    * @apiName apiName
+    * @apiGroup group
+    * @apiVersion  major.minor.patch
+    * 
+    * 
+    * @apiParam  {String} paramName description
+    * 
+    * @apiSuccess (200) {type} name description
+    * 
+    * @apiParamExample  {type} Request-Example:
+    * {
+    *     property : value
+    * }
+    * 
+    * 
+    * @apiSuccessExample {type} Success-Response:
+    * {
+    *     property : value
+    * }
+    * 
+    * @apiSampleRequest true
+    */
+
+3：根据接口修改注释 如下：
+以注册接口为例：router.post('/user',upload.single('avatar'),userController.addUser)
+
+参照上方的原注释对比查看
+ /**
+    * 
+    * @api {post} /api/user 注册添加用户   ( 解释说明：此处 @api 内的 method为post请求 path为接口路径 修改为 /api/user 从一级路径 /api 开始 user 为二级路径，title可随便写一个 当前写的 注册添加用户 )
+    * @apiName addUser ( 解释说明： 此处 @apiName 内的 apiName可以写为 addUser （因为是注册添加用户） )
+    * @apiGroup usergroup ( 解释说明：此处 @apiGroup 内的 group 将来是可以 分组的，就是生成的文档 会按照组的形式，比如说 user 一组的（里面有什么 添加 删除 修改等等 接口 只要apiGroup 都写成同样的（如：usergroup）  ） )
+    * @apiVersion  1.0.0 ( 解释说明： @apiVersion 版本号 当前写的 1.0.0)
+    * 
+    * 
+    * @apiParam  {String} username 用户名 ( 解释说明： @apiParam 是调用接口 需要前端传什么参数：当前是 {username,age,password,avatar} 4个参数 所以此处需要多个注释 （每个参数-个），paramName 是参数字段名当前为 username ，{String}是传入字段的类型  description是对该字段的说明 此处为：用户名)
+    * @apiParam  {String} password 密码 ( 解释说明： 同上)
+    * @apiParam  {Number} age 年龄  ( 解释说明： 同上)
+    * @apiParam  {File} avatar 头像 ( 解释说明： 同上)
+    * 
+    * @apiSuccess (200) {Number} Code 标识成功字段 ( 解释说明： @apiSuccess 200为请求成功时的状态码  type是请求接口成功时返回的类型（当前成功为Number类型0 失败是 -1） name 是成功返回的字段名（当前为 Code） description是对该字段的说明 此处为 标识成功字段)
+    * 
+    * @apiParamExample  {multipart/form-data} Request-Example: ( 解释说明： @apiParamExample 给前端看 请求头设置及传参的例子： type是请求接口时header设置的编码格式如：{ headers: { 'Content-Type': "multipart/form-data" } }， 及传参数的例子 )
+    * {
+    *     username : '小明'
+    *     password : '123456'
+    *     age : 16
+    *     avatar : File
+    
+    * }
+    * 
+    * 
+    * @apiSuccessExample {type} Success-Response: ( 解释说明：@apiSuccessExample 给前端看 请求成功的 例子)
+    * {
+    *     Code : 0
+    * }
+    * 
+    * @apiSampleRequest true  ( 解释说明：@apiSampleRequest true 为生成 接口的 测试工具)
+    */
+
+    4：根据接口修改注释 完成后 执行命令 生成文件
+    apidoc -i .\routes\ -o .\doc
+    命令解释： apidoc -i  （固定命令 ）  .\routes\ （有接口注释的文件目录） -o （表示输出在什么地方） .\doc （表示输出在当前路径的doc文件夹 没有doc文件夹 会自动创建 并且输出）
+
+
+    5：生成后面 在doc 文件夹中 打开 （双击） index.html 
+
+    APIDOC生成接口文档html界面.jpg 图片可见生成的 api文档样式
+
+     右上角 默认的 版本号 0.0.0 选择 你刚刚设置生成 的版本号 1.0.0
+
+     右上角 显示的 usergroup 是刚刚生成的分组  打开 里面有一个 注册添加用户 是刚刚的 api/user 注册接口
+
+     相当于 提供了 接口文档说明 + 测试接口工具
+
+     6： 拓展可以 在当前文件夹 myapp下 创建一个apidoc.json 文件
+        {
+            "name":"测试后台系统接口文档",//修改 顶部的标题
+            "version":"1.0.0",// 默认的显示0.0.0 设置默认显示指定版本的 接口文档说明 
+            "description":"关于测试后台系统接口文档的描述",
+            "title":"企业网站定制系统"//网页的标题
+        }
+
+
+类似的 第三方 还有 showdoc

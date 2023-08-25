@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="wnameth=device-wnameth, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>upload- 文件上传 - form 提交方式 前后端不分离 -上传 单个文件 </h1>
+    <!-- 请求注册接口 from 默认提交的编码格式:"application/x-www-form-urlencoded" 但是当前提交内容包含了 文件 需要修改提交编码格式："multipart/form-data"  -->
+    <form action="/api/user" method="post"  enctype="multipart/form-data">
+        <div>
+            用户名：<input type="text" name="username" >
+        </div>
+        <div>
+            密码：<input type="password" name="password" >
+        </div>
+        <div>
+            年龄：<input type="number" name="age" >
+        </div>
+        <div>
+            文件-头像：<input type="file" name="avatar" >
+        </div>
+        <button type="submit">form提交数据登录-文件上传</button>
+    </form>
+
+
+</body>
+</html>

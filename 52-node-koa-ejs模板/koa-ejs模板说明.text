@@ -1,0 +1,12 @@
+在koa中使用ejs模板
+
+1： 安装 koa-views 模块
+
+命令 ：yarn  add koa-views
+
+
+2: 安装 ejs 模板引擎
+命令 ：yarn  add ejs
+
+
+3: 配置注册 应用级中间件

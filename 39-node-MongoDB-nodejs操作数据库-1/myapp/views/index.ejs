@@ -15,10 +15,10 @@
       用户名：<input type="text" id="username">
     </div>
     <div>
-      密码：<input type="password" id="userpassword">
+      密码：<input type="password" id="password">
     </div>
     <div>
-      年龄：<input type="number" id="userage">
+      年龄：<input type="number" id="age">
     </div>
     <button onclick="register()">注册</button>
   </div>
@@ -30,8 +30,8 @@
     function getParams(){
       return {
         username:document.querySelector('#username').value,
-        userpassword:document.querySelector('#userpassword').value,
-        userage:document.querySelector('#userage').value,
+        password:document.querySelector('#password').value,
+        age:document.querySelector('#age').value,
       }
     }
     function register(){
@@ -46,7 +46,10 @@
         return res.json();
       }).then(res=>{
         console.log(res);
-
+        alert(`${res.Message}`)
+        if(res.Code==0){
+          window.location.href='./home'
+        }
       })
     }
 </script>

@@ -17,7 +17,7 @@ MongoDB （是非关系型数据库 ，增，删，改，查等操作）
     特点：
         (1) sql语句增，删，改，查操作。
         (2) 保持事务的一致性,事务机制（回滚）。
-        关系型数据库如：mysql、sqlserver、db2、oracle
+        关系型数据库如：sqllite 、mysql、sqlserver、db2、oracle
     
     1-2：非关系型数据库 （功能相对关系型数据库 稍弱）
     特点：

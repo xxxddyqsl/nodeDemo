@@ -1,0 +1,111 @@
+登录鉴权:
+    1:cookie与session
+    [HTTP 无状态] 我们知道，HTTP 是无状态的。也就是说，HTTP 请求方和响应方间无法维护状态，
+    都是一次性的，它不知道前后的请求都发生了什么。但有的场景下，我们需要维护状态。最典型的，
+    一个用户登陆微博，发布、关注、评论，都应是在登录后的用户状态下的。
+
+    HTTP 是无状态的 因此需要找一个方法 把这个 登录状态记录住 方法如下：
+    1：cookie，后端可以在本地中存一个cookie(有时效如 1分钟后 过期)，然后前端访问页面 或者 进行接口请求时在将这个cookie带给后端就可以了，
+    如果没有这个cookie 后端可以 重定向 到 login 登录页，
+    注意 ： cookie 特别容易被伪造（如在页面 F12  document.cookie = 'username=111'）, 伪造完了就可以直接跳过后端的登录鉴权 进行登录 只要有cookie后端就给数据。
+
+    因此单独使用 cookie 无法 实现在 服务端注销（后端登录鉴权进行 注销、 重定向、强制下线 等）
+
+    cookie 特点：是存在 客户端（前端 浏览器）
+    session 特点：可以存在服务端(后端 数据库 或 默认存在 内存中 )，可以在 后端 催毁 这个session 相当于给它注销掉了
+
+    解决方案：cookie 配合 session 进行使用 才能更好的进行登录鉴权：
+    如果 后端 催毁 这个session 相当于给它注销掉了 那即使有cookie （不管是不是伪造的cookie）也不好用了，而这个session 是基于 cookie 实现的。
+
+    登录鉴权流程示意图.jpg 完整的流程解析说明：
+    1：点击浏览器 进行 post请求 账号密码登录
+    2：服务端（后端）校验账号密码（查询数据库-users表内 账号密码是否存在）
+    3：如果 校验成功，后端生成一个 session 存入数据库(库 session) 或存入 内存 中， 注意 session 是存在 服务端的，既然session存好了 那为什么需要cookie呢？
+    session相当于在服务端开了一个房（后续可能有好多人登录成功，那就会有很多个session），没有钥匙（cookie）是找不到对应的这个房间（session），
+    因此就给前端在设置一个 cookie （这个cookie值 被称为 sessionId ），唯一对应这个session的一把钥匙，所以你的cookie就是存的这把钥匙，
+    以后的每一次请求都需要带着这把钥匙（cookie），后端就进行校验 找到这个 cookie  对应的 session，
+    如果找到 就返回数据，如果找不到 就重定向到 login 页面，如果这个钥匙（cookie）丢了，可以在后端强制的进行下线，因为cookie还是容易被盗取。
+   
+
+    生成 session ：
+    使用第三方 express-session 模块： 自动生成加密的sessionId 且校验session 只要通过判断字段 就可以
+    安装 ：yarn add express-session
+    配置：
+        /*
+         app.use注册session中间件  配置第三方中间件  需要写进入 路由之前
+        req.session 默认是存在 内存中（内存是：启动服务器时占用的） 当你改动代码 保存时 之前的 session 会丢，
+        并且 内存只有那一点大，用户过多session都在内存中 ，内存会被撑满 ，内存溢出 造成服务宕掉 连服务器都得宕机，因此需要存入服务器
+
+        session的基本应用： 1：controllers文件夹下的loginController.js 可见设置session 案例 2：routes文件夹下 home.js 可见校验session 案例
+        */
+        app.use(session({
+            // 当前以下几项配置是必备的
+            name:'xingSystem',// name可选的， 生成的cookie名字
+            secret:'qweqp5866ok',// 密钥(可以随便瞎写)，生成cookie这个值一开始是进行 编码，但是为了防止别人能对比出来 ， 能知道原来这个编码原来是什么（可以通过彩虹表进行比），因此在这加一个密钥（可以随便瞎写），带上密钥别人就猜不出来了
+            cookie:{
+            maxAge: 1000*60*60,// 配置cookie 过期时间 - 单位为 毫秒 1000*60 = 1分钟 1000*60*60=1小时 当前设置 1个小时 过期
+
+            //  这个cookie 在本地 F12 document.cookie 是无法获取的 必须在 http协议 或 https协议  进行数据交换的时候 所以无需担心 在本地进行 篡改 cookie 的问题
+            secure:false,// 为false 表示在http协议也能获取访问到cookie （这个cookie 在本地是无法获取的document.cookie） 为true 表示只有在https协议才能访问cookie
+            },
+            /*
+            resave：true 表示是如果在 配置的过期时间(1小时)内什么操作都没有会过期，
+            但是只要在 配置的过期时间(1小时)内 你访问了 路由或接口 并且 重新设置 session 后（当前是在app.use应用级中间件中 校验session 时重新设置：req.session.myDate =   Date.now();），
+            这个时候session 才会自动重新计算过期时间 ，否则 session 过期时间 不变。在 查看重新设置 session 重新计算过期时间.jpg 中步骤 可查看过期时间是否发生变化
+            需要配合 rolling:true, 使用
+            */
+            resave:true,
+            /*
+            saveUninitialized:true,  表示一开始 访问这个网站 立即生成给你一个 cookie，
+            但是这个cookie 是无效的。 除非你登录成功之后 操作设置了一下 session 才会有效 设置 session 在 1：controllers文件夹下的loginController.js 可见设置session 案例
+            false 表示一开始 访问这个网站 并不会生成一个 cookie， 除非你登录成功之后 操作设置了一下 session 才会第一次给你这个 cookie
+            */
+            saveUninitialized:true,
+            /*
+            rolling:true,
+            默认为 true 表示 在session 过期超时前 每次访问路由 或者 接口请求，
+            都会重新计算过期时间（要配合 resave:true 并且要重新设置 session 才能生效 ），
+            false 表示 在session 过期超时前 无论访问多少次 都是按第一次刷新开始计时
+            */
+            rolling:true,
+            /*
+                配置 通过 connect-mongo 模块 将session 存入 MongoDB数据库中
+            */
+            store:MongoStore.create({
+                //mongodb://127.0.0.1:27017/ MongoDB数据库地址  并且 新创建 一个数据库（xingxin_session 数据库名） 在存放 session
+                mongoUrl: 'mongodb://127.0.0.1:27017/xingxin_session',
+                ttl: 1000*60*60,// 过期时间（过期将该session从数据库中移除 ） - 和上面配置的 cookie 过期时间 必须保持一致
+            })
+        }))
+
+    然后 在 app.js 中 配置 express-session （第三方中间件） 可 参考 30-node-express-中间件 详细说明案例
+
+    session 存入数据库(当前为 Mongodb 数据库)
+        使用第三方 connect-mongo 模块：将session 存入 MongoDB 数据库
+        
+        配置在上方
+
+
+    使用 cookie与session的缺陷：
+    1： session 默认存在内存中， 用户过多的情况下 session都在内存中 ，内存会被撑满 ，内存溢出 造成服务宕掉 连服务器都得宕机。
+    2： session 存入服务器 （光维护数据库就很麻烦），每一个用户登录之后，都会在数据库中创建一个相应的xingxin_session数据库，
+    在这个数据库中插入sessions表，在往这个sessions表中插入数据。
+    3： 安全问题 cookie特点浏览器会自动的带着 cookie 给后端，后端会自动帮你去校验（如基于 express-session）
+    场景如下：
+    如果访问一个网站 不点退出 后端是不会触发 req.session.destroy()这个方法 销毁session（除非是 超过过期时间）那这个cookie 是有效的，
+    如果这个时候 别人给你发了一个链接，但是这个链接实际上 就是你刚才那个网站的链接 所以它会带着这个cookie 走，这个url链接可能在后面带了一些请求参数，比如 给谁评论，给谁转账
+    这种就是 请求伪造（通常缩写为 CSRF 或者 XSRF），所以将有效信息 存入cookie 中就会有安全性的问题
+
+    因此不管是 存入内存 还是 存入数据库 都会有问题，所以 对于服务器 包括数据库 是一个巨大的开销，严重限制了服务器 包括数据库的能力。
+    如果业务更复杂一点
+    如：前端页面中 接口 是来自于 两个服务器 对应的两套数据库，
+    登录之后能 很自由的从A 服务器对应的数据库取数据（这个没问题），但是想让用户 无感的 情况下也能访问 另一个B服务器去取数据，
+    但是问题来了 session 在A服务器 存着 ，怎么能让无感的去B服务器内的数据库取数据，因为B 也做了单独的验证过程，所以就会出现问题，
+    就要实现 A数据库内的session 与 B数据库内的session 之间的共享 的问题。
+
+    解决方案： 1： 将session 放在统一的 C 数据库，A 和 B都去 C数据库里面读，
+    但是如果 C 服务器宕机 或挂掉了 或 A服务器 连接 C服务器 的服务在挂掉了 就会有各种各样的问题。
+
+    因此 session  不管是放在内存中 还是 放在数据库中 数据量过大 都会有问题
+
+    解决方案： 使用 token （下一节 43-nodejs-登录鉴权-JWT(token)-01 学习中可见）

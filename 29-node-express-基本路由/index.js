@@ -116,6 +116,7 @@ app.get(/.*fly$/, (req, res) => { // 访问的url地址为 http://localhost:4399
 //     res.send({list:[1,2,3]})
 // })
 
+// 多个中间件
 // 写法2： 使用多个回调函数处理路由（记得指定next 对象） 支持 数组的写法 相较于上一个写法 数组的写法更加优雅,简洁 如下:
 const callback1 = (req, res, next) => {
     //逻辑1： 验证用户token过期 ， cookie 过期

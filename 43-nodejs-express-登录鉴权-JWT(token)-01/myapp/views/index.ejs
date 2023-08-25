@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>
+    <%= title %>
+  </title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+
+<body>
+  <h1>后台系统-用户管理业务+权限-注册页 </h1>
+  <div>
+    <div>
+      用户名：<input type="text" id="username">
+    </div>
+    <div>
+      密码：<input type="password" id="password">
+    </div>
+    <div>
+      年龄：<input type="number" id="age">
+    </div>
+    <button onclick="register()">注册</button>
+    <button onclick="ToLogin()">进入登录页</button>
+  </div>
+</body>
+<!-- 使用 axios 进行ajax 请求 -->
+<script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+<script>
+  // 设置 axios 拦截器 请求发出去之前 携带 token 请求回来之后更新本地存入的token（token的过期时间）
+  axios.interceptors.request.use(function (config) {
+    // console.log(`每次发出请求成功之前,会先执行的方法， `)
+    return config;
+  }, function (error) {
+    // console.log(`每次发出请求失败之前,会执行的方法`)
+    // Do something with request error
+    return Promise.reject(error);
+  });
+  axios.interceptors.response.use(function (response) {
+    // console.log(`任何请求成功后，第一个调用的方法，然后才会走 下面 axios.post 后的.then()方法`,response)
+
+    // 统一在拦截器中 获取后端设置在header头里面的token字段（前后端 共同约定的：Authorization）
+    const { Authorization } = response.headers;
+    // 如果后端返回的Authorization为真， 存入 本地
+    Authorization && localStorage.setItem('token', Authorization)
+    // Any status code that lie within the range of 2xx cause this function to trigger
+    // Do something with response data
+    return response;
+  }, function (error) {
+    // console.log(`任何请求失败后，第一个调用的方法`)
+
+    // Any status codes that falls outside the range of 2xx cause this function to trigger
+    // Do something with response error
+    return Promise.reject(error);
+  });
+</script>
+<script>
+  function getCookie() {
+    // 获取 cookie
+    let cookieData = {};
+    document.cookie.split(';').forEach((param) => {
+      // 以=分割 数组每一项 的 字符串 取出key val
+      let [key, val] = param.split('=');
+      key = key.replace(/\s+/g, "");// 去除空格
+      cookieData[key] = val;
+    })
+    return cookieData;
+  }
+  function getParams() {
+    return {
+      username: document.querySelector('#username').value,
+      password: document.querySelector('#password').value,
+      age: document.querySelector('#age').value,
+    }
+  }
+  // 按照 和后端约定的 语义化规范 - RESTful风格规范 编写 请求
+  function register() {
+    let params = getParams();
+    if (params.username == '' || params.password == '' || params.age == '') {
+      return alert('用户名、密码、年龄 不能为空')
+    }
+    console.log(params)
+    axios.post('/api/user',params,).then(res=>{
+      alert(`${res.Message},前面login进行登录`)
+      ToLogin()
+    })
+    // fetch('/api/user', {
+    //   method: 'POST',
+    //   body: JSON.stringify(params),
+    //   headers: { 'Content-Type': 'application/json' },// 请求头信息配置 告诉后端传入的参数是什么格式(当前为application/json JSON字符串格式) 按什么格式解析参数
+    // }).then(res => {
+    //   //  接口返回的为json数据 直接 return res.json(); 按JSON的格式去解析返回数据 具体案例  14-node内置模块-http模块-跨域-cors 中有描述
+    //   return res.json();
+    // }).then(res => {
+    //   console.log(res);
+    //   alert(`${res.Message}`)
+    //   if (res.Code == 0) {
+    //     getCookie()._id === res.Data._id ? window.location.href = './home' : alert(`当前_id 和 后端设置的cookie _id不一致 无法权限进入 home 页面`)
+    //   } else {
+    //     ToLogin()
+    //   }
+    // })
+  }
+  function ToLogin() {
+    window.location.href = './login'
+  }
+</script>
+
+</html>

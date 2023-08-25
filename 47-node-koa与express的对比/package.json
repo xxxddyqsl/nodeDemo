@@ -1,0 +1,10 @@
+{
+  "name": "koa对比express",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "koa": "^2.14.2"
+  }
+}

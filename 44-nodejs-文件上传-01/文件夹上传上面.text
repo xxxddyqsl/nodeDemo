@@ -1,0 +1,49 @@
+前端提交方式1 - 前后端不分离 - form 提交方式 ：
+   <!-- 请求注册接口 from 默认提交的编码格式:"application/x-www-form-urlencoded" 但是当前提交内容包含了 文件 需要修改提交数据的编码格式："multipart/form-data"  -->
+    <form action="/api/user" method="post"  enctype="multipart/form-data">
+
+    </form>
+
+
+
+后端 对于 前端提交的multipart/form-data 编码格式（提交的数据内包含了文件） 需要进行一些处理，如第三方库： Multer
+
+Multer 是一个 nodejs 中间件，用于处理 multipart/form-data 类型的表单数据，
+它主要用于上传文件。它是写在 busboy 之上非常高效。
+注意: Multer 不会处理任何非 multipart/form-data 类型的表单数据。
+
+1： 安装 Multer
+ 命令： yarn add multer
+
+使用方式 - 如在 api.js 接口文件中 （因为是/api/user 接口 是存在有接收文件的 所以在 api.js 中调用 ）：
+// 引入 multer 处理前端传入文件时 数据的编码格式："multipart/form-data"
+const multer = require('multer');
+/*
+    方式1： 利用 multer 模块  在你的 本地文件夹 下 创建一个目标文件夹（如当前的： uploads 文件夹） 将来接收到的文件存放的地方，
+    但是你需要在 app.js 中将生成的uploads文件夹配置 静态资源文件夹
+*/
+// const upload  = multer({dest:'uploads/'})
+/*
+    方式2： 利用 multer 模块  在你的 本地文件夹 下 创建一个目标文件夹（如'public/uploads/ ，在静态资源文件夹下创建 uploads 文件夹） 将来接收到的文件存放的地方，
+    因为在 使用脚手架 快捷构建 Express 项目 express  myapp --view=ejs  （注释：创建基于ejs模板的应用骨架 之前学习的 模板文件是基于ejs模板 并且对前端相对友好），
+    public 默认已经结束 静态资源文件夹了 所以此时并不需要再次配置。案例在 36-node-express-生成器 文件夹下的 express生成器说明.text 有说明文档
+*/
+const upload  = multer({dest:'public/uploads/'})
+
+
+
+
+具体案例
+后端在： 44-nodejs-文件上传-01\myapp\routes\api.js 文件中可见
+单个文件上传 在 post 请求注册接口 ： router.post('/user',upload.single('avatar'),userController.addUser) 接口中 及 C层 controllers文件夹下 的 addUser 函数内 可见
+
+多个文件上传 在 put 请求注册接口：  router.put('/user/:id',upload.array('avatar'),userController.UpdateUser) 接口中 及 C层 controllers文件夹下 的 UpdateUser 函数内 可见
+
+
+前端在： 44-nodejs-文件上传-01\myapp\views\home.ejs 文件中可见
+
+1： 前后端分离 - axios 单个文件上传 在 post 请求注册接口 ： axios.post('/api/user', formsData, { headers: { 'Content-Type': "multipart/form-data" } }).then(res => {})
+
+2： 前后端未分离 -upload.ejs文件中可见 使用form 表单的方式提交
+
+多个文件上传 在 put 请求注册接口  ：  axios.put(`/api/user/${_id}`, params, { headers: { 'Content-Type': "multipart/form-data" } }).then(res => {})

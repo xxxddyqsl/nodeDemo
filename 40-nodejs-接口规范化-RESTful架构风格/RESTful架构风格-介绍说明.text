@@ -1,0 +1,35 @@
+    接口规范
+RESTful架构介绍：
+    服务器上每一种资源，比如一个文件、一张图片、一部电影，都有对应的url地址，如果我们的客户端需要对服务器上的这个资源进行操作，
+    就需要通过http协议执行相应的动作来操作它，比如进行获取，更新，删除。
+
+    简单来说就是url地址中只包含名词表示资源，使用http动词表示动作进行操作资源，
+    举个例子：左边是错误的设计风格，而右边是正确的设计风格，
+
+    左边： GET /blog/getArticles -->                右边：GET  /blog/Articles 获取所有的文章 （ GET请求 ）
+    左边： GET /blog/addArticles -->                右边：POST  /blog/Articles 添加一篇文章 （ POST请求 ）
+    左边： GET /blog/editArticles -->               右边：PUT  /blog/Articles 修改一篇文章 （ PUT请求 ）
+    左边： GET /rest/api/deleteArticles?id=1 -->    右边：DELETE  /blog/Articles/1 获取所有的文章 （ DELETE请求 ）
+
+    以为 两种设计风格请求 虽然都能满足业务场景，但是右边的RESTful风格更加能符合语义化。
+
+    (RESTful风格)右边设计风格说明:
+    可见 前端发起的  增、删、改、查 所有的请求地址都是一样的（ /blog/Articles ）
+    那是怎么来满足 增、删、改、查呢？后端是怎么来响应？怎么知道前端是 取数据 还是添加、 修改、 删除数据 呢？
+    依靠的就是 前端发起的请求时是什么请求 （ GET请求,POST请求,PUT请求,DELETE请求 ）,并不是说自带的就能完成 增、删、改、查，
+    只不过是跟后端 一种语义化的约定，
+    1：我只要给你发 GET请求 后端就是给我返数据，
+    2：我只要给你发 POST请求 后端就是给我增加数据，
+    3：我只要给你发 PUT请求 后端就是给我修改数据，
+    4：我只要给你发 DELETE请求 后端就是给我删除数据，
+    所以说 GET请求,POST请求,PUT请求,DELETE请求 它们是一种语义化的规定，所以我们在请求中 前端请求 按照这四种方式来发 ，对应的后端也是按照这四种方式来响应，
+    当然  增、删、改、查的行为还是后端自己写代码来操作，而这四种方式 也仅仅只是http的动词而已，当然不是说之前写的请求是错误，只是不符合 RESTful 这种架构风格
+
+    使用方式 如：
+        GET请求     http://localhost:4399/api/user //获取列表
+        POST请求    http://localhost:4399/api/user //创建增加用户
+        PUT请求     http://localhost:4399/api/user/{id} //修改用户信息
+        DELETE请求  http://localhost:4399/api/user/{id} //删除用户信息
+
+
+按照 RESTful风格 修改前端发起请求的方式 + 修改 api接口。 案例在 routes 文件夹下的 api.js 文件中可见

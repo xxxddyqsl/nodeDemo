@@ -1,0 +1,162 @@
+token 概念：
+
+1：既然 cookie 会被 浏览器携带 （请求伪造 CSRF）有安全问题 （使用 localStorage 或 sessionStorage 不会被浏览器携带）
+2: 而 session存在服务端（内存或数据库） 有存储的问题 （那就不存 没有session 这个概念， 存在客户端本地）。
+
+
+综上所述 ：那使用 localStorage 或 sessionStorage
+ 1：不会被浏览器携带
+ 2：那一些有效的信息（如用户信息存在）是存在客户端本地
+
+如： localStorage （容易被篡改 并且 没有时效性） 中 存入 {username:'小明',id:'123123'}，
+    直接带id 去后端，后端根据 唯一的id 读出来数据库中所有的有效信息，
+    因此引发一个问题 localStorage（永久有效，不主动清空的话就不会消失） 没有时效性，那使用 sessionStorage（关闭页面会自动删除所存储内容），
+    但是 在localStorage中 直接这样 {username:'小明',id:'123123'} 明文的存储 太容易被篡改了，那该怎么办呢？
+    解决方案：进行 加密签名{username:'小明',id:'123123'} 
+    由此生成一个概念： token
+
+
+token 生成方式 （后端生成）：// 对比 token生成流程图.jpg 查看下面的解释说明
+1：首先拼一个 Header ，再 拼一个  userID 这两块拼好
+2：在通过  HMAC-SHA256 (Hmac-sha256 前面23-node内置模块-crypto模块-加密 中有学过 )
+加密算法+密钥（这个密钥是你自己随便取的随机数 密钥要存在数据库中 后面要解码） 通过加密算法+密钥配合进行加密，得到一个签名
+3： 这个签名 生成了之后 再 拼接上 第一步（拼上 Header ，再拼上  userI），此时 构成了这个 toke
+4： 将这个toke 返回给前端
+
+而下一次前端访问 或 请求的时候 会 带着这个token给后端
+后端 解析 token的流程：
+1：后端把前面 两部分数据（Header 和 userID）拼接
+2：再次经过 密钥 （这个密钥是之前 生成时存入了数据库中的）+ HMAC-SHA256 加密算法，计算出这个签名
+3： 用 传入的toke 去匹配 最后拼的签名 （就是 签名+ 拼上 Header ，再拼上  userI 相当于是token2 ）
+4：如果是对的情况下就认为这个 签名从来没有被篡改过
+
+
+
+当然，如果一个人的token 被别人偷走了，那我也没办法，这其实和一个人的我也会认为小偷就是合法用户，sessionid 被别人偷走是一样的。
+这样一来，我就不保存session id了，我只是生成token,然后验证token ，我用我的CPU计算时间获取了我的session 存储空间!
+解除了session id这个负担，可以说是无事一身轻，我的机器集群现在可以轻松地做水平扩展，用户访问量增大，直接加机器就行。这种无状态的感觉实在是太好了!
+缺点:
+1.占带宽，正常情况下要比 session_id 更大，需要消耗更多流量，挤占更多带宽，假如你的网站每月有10万次的浏览器，就意味着要多开销几十兆的流量。听起来并不多，但日积月累也是不小一笔开销。实际上，许多人会在JWT 中存储的信息会更多;
+2.无法在服务端注销，那么久很难解决劫持问题
+3.性能问题，JWT 的卖点之一就是加密签名，由于这个特性，接收方得以验证JWT 是否有效且被信任。对于有着严格性能要求的 Web 应用，这并不理想，尤其对于单线程环境。
+
+注意
+CSRF攻击的原因是浏览器会自动带上cookie，而不会带上token;以CSRF攻击为例:
+cookie: 用户点击了链接，cookie未失效，导致发起请求后后端以为是用户正常操作，
+于是进行扣款操作:token: 用户点击链接，由于浏览器不会自动带上token，所以即使发了请求，后端的token验证不会通过所以不会进行扣款操作;
+
+
+JSONwebToken 只是适用于 前后端分离
+
+ 使用第三方 jsonwebtoken 模块： 生成 token 与 验证 token
+
+
+
+校验 token 是否过期 核心代码：
+ 前端：
+ 使用 axios 请求 并且配置请求拦截器 - 集中处理 token的存储 更新 及 token 失效 重定向到 login 页
+ 1： 首先 在login页 配置 - 登录成功之后 获取后端返回在 header 里的 token 并且存在本地
+  axios.interceptors.response.use(function (response) { //  任何请求成功后，第一个调用的方法，然后才会走 如 登录请求 axios.post('/api/login') 后的.then()方法 跳转进入home页
+     // 统一在拦截器中 获取后端设置在header头里面的token字段（前后端 共同约定的：Authorization）
+        const {authorization} = response.headers; // header头里面的Authorization  A为小写
+        // 如果后端返回的Authorization为真，token 存入 本地 
+        authorization&&localStorage.setItem('token',authorization)
+  })
+ 2-1 ： 在home 页 配置 - 发起请求前 给后端传入本地存的 token 校验是否过期 如下：
+
+  // 设置 axios 拦截器 请求发出去之前 携带 token 请求回来之后更新本地存入的token（token的过期时间） 
+    axios.interceptors.request.use(function (config) {
+        // console.log(`每次发出请求成功之前,会先执行的方法， `)
+        let token=localStorage.getItem('token');
+        // 每次给后端发请求之前 将token 设置到 header 中 传给 后端 校验 是否过期  Authorization 字段（前后端 共同约定的token字段：Authorization）
+        /*
+            手动模拟测试token失效 ： 手动删除 localStorage 里的token  前端传入头的token ( Authorization: 'Bearer null') 而后端通过req.headers['authorization']?.split(' ')[1]，
+            字符串截获取token出来的 为 'null' string类型 ，
+            字符串 'null' 不为假 进入校验token ，JWT.verify(token) 校验不通过返回 false ，给前端返回 错误码 401 及 数据
+        */
+        // 给后端 传入 token 时 有一个不成文的规定 就是拼接上 Bearer+空格+ token ，当然不这么写 也是可以 只是推荐这样写
+        config.headers.Authorization = `Bearer ${token}`;//拼接上 Bearer+空格+ token
+        console.log(' axios 拦截器',token)
+        return config;
+    }, function (error) {
+        // console.log(`每次发出请求失败之前,会执行的方法`)
+        // Do something with request error
+        return Promise.reject(error);
+    });
+
+2-2 ： 在home 页 配置 - 发起请求成功  后端校验传入本地存的 token 是否过期 过期：后端返回 错误码：401 重定向到login登录页 ，未过期后端更新token过期时间返回新的 token 再次存入本
+axios.interceptors.response.use(function (response) {
+        // console.log(`任何请求成功后，第一个调用的方法，然后才会走 下面 axios.post 后的.then()方法`,response)
+
+        // 统一在拦截器中 获取后端设置在header头里面的token字段（前后端 共同约定的：Authorization）
+        const { authorization } = response.headers;// header头里面的Authorization 为小写
+        // 如果后端返回的Authorization为真， 存入 本地
+        authorization && localStorage.setItem('token', authorization)
+        // Any status code that lie within the range of 2xx cause this function to trigger
+        // Do something with response data
+        return response;
+    }, function (error) {
+        console.log(`任何请求失败后，第一个调用的方法`,error)
+        // 统一处理  报错 （token 失效后端返回报错 错误码：401）
+        if(error.response.status===401){// token 失效 后端返回401
+            alert(`token过期，请重新登录。 后端返回数据：${error.response.data.Message}`)
+            //  token 失效 销毁 本地存的token
+            localStorage.removeItem('token');
+            // 跳转到 登录页
+            window.location.href = './login'
+        }
+        // Any status codes that falls outside the range of 2xx cause this function to trigger
+        // Do something with response error
+        return Promise.reject(error);
+    });
+
+    后端配置 应用级中间件  - 集中处理 token的生成 校验 返回给前端 token 及 token 校验失效 返回前端401错误码 让前端跳转到 login 登录页
+    1：设置 应用级中间件（ 没有挂载path路径的中间件（被称为 万能匹配应用中间件），
+    校验 token 过期 （请求拦截器 - 在指定一些路由或者的请求之前校验 login登录页面除外 否则一直触发校验 重定向）
+    配置如下：
+      app.use((req, res, next) => {
+         // 过滤 排除 不需要校验的 路由和接口请求 如：login相关的路由和接口 ，否则一直校验不通过 执行重定向
+            if (req.url.includes('login')) {
+            // 调用 next() 放行 直接执行 下一个中间件
+            next();
+            //  不执行 后面的 session 校验
+            return
+            }
+          /*
+            获取 前端传入的 token  token字段（前后端 共同约定的：Authorization）
+            前端在给后端 传入 token 时 有一个不成文的规定 就是拼接上 Bearer+空格+ token ，当然不这么写 也是可以 只是推荐这样写，所以需要截取 空格之后的 token
+            req.headers['authorization']? es6 语法 前面header头里面包含authorization字段时（header 里面小写） 为真时 才能 截取字符串（空格之后的） 获取 token,
+        */
+        let token = req.headers['authorization']?.split(' ')[1];
+        /*
+        手动模拟测试token失效 ： 手动删除 localStorage 里的token  前端传入头的token ( authorization: 'Bearer null') 字符串截取出来的 为 'null' string类型 ，
+        token为字符串 'null' 不为假 进入校验token ，JWT.verify(token) 校验不通过返回 false ，给前端返回 错误码 401 及 数据
+        */
+        console.log('应用级中间件=>', req.headers,typeof token, token,)
+        //  token 为真 或者url 包含 api的接口请求  说明前端发起 请求的api 接口必须携带token
+        if (token) {
+        // if (token || !req.url.includes('login') ) { // 除不包含login相关的路由和接口 其他的 不管是api请求 或 路由页面 全部校验 token
+        // 校验token
+        const payload = JWT.verify(token);
+        console.log('校验token', payload)
+        if (payload) {
+            // 未过期 - 有效 token，重新计算token 过期时间  重新生成token { _id username }加密数据   过期时间-字符串类型(默认毫秒 1000*60 = 1分钟 1000*60*60=1小时 ，或'10s'=>10秒 或'1h'=>1小时 或 '1d'=>1天  )
+            const newToken= JWT.generate({_id:payload._id,username:payload.username},(1000*60*5).toString());// 重新计算 过期时间 5 分钟
+            /*  建议：默认不成文的规范
+                后端返回 token时 放在header中 如： res.header(自定义字段名，value) // 通常 token的 字段名为 authorization 如下
+                设置 token 的 字段名 必须前后端 约定好 使用同一个字段 
+                前端传入 token时 也是放在header中
+            */
+            res.header('authorization',newToken)
+            // 调用 next() 放行 直接执行 下一个中间件
+            next();
+        } else {
+            // 过期 - 无效toke
+            res.status(401).send({ Code: -1, Message: 'token 登录令牌已过期，请重新登录' })
+        }
+        } else {
+        //  token 为假 说明并且传入 token 访问的是路由页面 - 前端在 使用 react 或 vue 可以通过路由拦截 校验 传入后端 token 校验 token 是否过期
+        // 调用 next() 放行 直接执行 下一个中间件
+        next();
+        }
+      })

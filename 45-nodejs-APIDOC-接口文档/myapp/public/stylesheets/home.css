@@ -1,0 +1,120 @@
+.wrapper{
+    /* width: 500px; */
+    width: 900px;
+    height: 400px;
+    margin: 0 auto;
+    border: 1px solid;
+    display: flex;
+}
+.headers{
+    height: 32px;
+    font-size: 2em;
+    font-weight: bold;
+    text-align: center;
+}
+.content{
+    flex: 1;
+    width: 100%;
+    overflow: auto;
+    /* margin: 10px 0; */
+    /* border: 1px solid red; */
+    justify-content: space-between;
+}
+.list {
+    flex: 1;
+    width: 100%;
+    overflow: auto;
+    margin: 15px 0;
+}
+.list table {
+width: 100%;
+}
+.list  li {
+    width: 100%;
+    border: 1px solid salmon;
+    border-left:0 ;
+    border-right:0 ;
+}
+.list  li  .liItem{
+    flex: 1;
+    border-right: 1px solid salmon;
+    /* border-left: 0; */
+    padding: 2px;
+    text-align: center;
+}
+.footer {
+    width: 100%;
+    height: 32px;
+}
+.footer li {
+    flex: 1;
+    text-align: center;
+    border: 1px solid sandybrown;
+    border-radius: 3px;
+}
+.paging {
+    width: 100%;
+}
+.paging div{
+    margin: 0 auto;
+}
+
+
+table {
+    /* border-collapse: collapse; */
+    border-spacing: 0;
+}
+ 
+td,th {
+    padding: 0;
+}
+ 
+.list table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    empty-cells: show;
+    border: 1px solid #cbcbcb;
+}
+ 
+.list table caption {
+    color: #000;
+    font: italic 85%/1 arial,sans-serif;
+    padding: 1em 0;
+    text-align: center;
+}
+ 
+.list table td,.list table th {
+    border-left: 1px solid #cbcbcb;
+    border-width: 0 0 0 1px;
+    font-size: inherit;
+    margin: 0;
+    overflow: visible;
+    padding: .5em 1em;
+}
+ 
+.list table thead {
+    background-color: #e0e0e0;
+    color: #000;
+    text-align: left;
+    vertical-align: bottom;
+}
+ 
+.list table td {
+    background-color: transparent;
+}
+ 
+.list table td {
+    border-bottom: 1px solid #cbcbcb;
+}
+ 
+.list table tbody>tr:last-child>td {
+    border-bottom-width: 0;
+}
+
+.list table td {
+    background-color: transparent;
+}
+ 
+.list table tbody tr:nth-child(even) td {
+    background-color: #f2f2f2;
+}
