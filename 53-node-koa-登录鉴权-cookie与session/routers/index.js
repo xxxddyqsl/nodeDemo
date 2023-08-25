@@ -11,7 +11,8 @@ const listRouter = require('./lists')
 
 // 导入 封装的 home 子路由+请求
 const homeRouter = require('./homes')
-
+// 导入 封装的 home 子路由+请求
+const loginRouter = require('./logins/index')
 /*
     1：先注册 路由级组件：
     将 封装的 子路由 注册成由级组件 合并到当前 new 的router 创建的路由模块 中
@@ -53,9 +54,8 @@ router.use('/user',userRouter.routes(),userRouter.allowedMethods());
 
 // 将 listRouter 注册 路由级中间件 ，并且 listRouter子路由 合并到 当前的 new 的router 创建的路由模块 中
 router.use('/list',listRouter.routes(),listRouter.allowedMethods());
-
+router.use('/login',loginRouter.routes(),loginRouter.allowedMethods());
 router.use('/home',homeRouter.routes(),homeRouter.allowedMethods());
-
 // 路由重定向 - http://localhost:4399/ ,重定向 到 http://localhost:4399/home
 router.redirect('/','/home')
 

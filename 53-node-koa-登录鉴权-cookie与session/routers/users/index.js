@@ -54,5 +54,21 @@ router.get('/',(ctx,next)=>{ // 请求路径 ：http://localhost:4399/user/  请
     console.log('获取请求参数put=>',ctx.params)
     ctx.body = {Code:0,Message:'修改-user-数据成功'}
 })
+// 登录接口
+router.post('/login',(ctx,next)=>{
+    // 获取 post 请求参数
+    console.log(ctx.request.body)
+    const {username,password} =ctx.request.body
+    if( username == '小明' && password =='123'){
+        //登录成功 -  设置 session 值， user是自定义字段 其实就是 给session 赋上值
+        ctx.session.user = {
+            username:username// 将个人信息存入
+        }
+        ctx.body = {Code:0,Message:'login - 登录成功'}
+
+    }else{
+        ctx.body = {Code:-1,Message:'login - 登录'}
+    }
+})
 // 导出
 module.exports = router;
