@@ -1,0 +1,84 @@
+MySQL数据库 - 外键约束 当前是使用的 可视化工具进行设置的 也可以通过 命令行 来设置 
+
+如 当前 students表中 插入了一条 class_id = 5 的数据，而且对应的 班级表 classes 中 并没有 id=5 班级为 5的数据，
+那在前端发请求的时候 后端还得先查一下 classes 表 是否有 id=5 班级为 5的数据，如果不在 那就不能往 students表中插入存储数据，
+或者 提交数据给后端时 恶意 提交了一些 没有关联 不能存的数据，而通过先查询  classes 表 来判断是否能 往 students表中插入存储数据，也比较麻烦，
+后端  可以通过 （ 建立外键约束）  表与表之间的关联 来约束 这种情况 让这些 恶意的数据 或 来破坏的数据 无法插入 存储在数据表中 。
+
+注意:
+    1.InnoDB 支持事务，MylSAM 不支持事务。这是 MySQL 将默认存储引擎从 MylSAM 变成nnoDB 的重要原因之一;
+    2.InnoDB 支持外键，而 MySAM 不支持。对一个包含外键的 InnoDB 表转为 MYISAM 会失败。
+外键约束 - 设置 DElete 删除和 update 更新 的选项：
+    CASCADE
+    在父表上update/delete记录时，同步update/delete掉子表的匹配记录
+    SET NULL
+    在父表上update/delete记录时，将子表上匹配记录的列设为null(要注意子表的外键列不能为not null)
+    NO ACTION
+    如果子表中有匹配的记录,则不允许对父表对应候选键进行update/delete操作
+    RESTRICT
+    同no action,都是立即检查外键约束
+
+使用 外键约束 ：
+    1.修改存储方式为： InnoDB 对应的表都需要修改（ 如： students表 和 classes表 ） ， 默认的存储方式： MylSAM。 （上方说明了 MylSAM 不支持事务），
+    students表 和 classes表 都修改为 存储方式 InnoDB。  (案例： 使用外键约束-步骤1-修改存储方式.jpg 可见)
+    
+    2. students表 或 classes表 中 都可以在 结构 中看到 关联视图  (案例： 使用外键约束-步骤2.jpg 可见)
+
+    3. students表 中 点击 关联视图 进入约束 class_id 字段 （ 因为 是和classes表 有关联性的 唯一字段） 案例：使用外键约束-步骤3-配置约束字段.jpg
+        3-1：约束的字段 为 class_id,
+        3-2：选择关联约束表 (classes表) 所在的数据库 , 当前关联的 classes表 就在 xingxin_test数据库中 ，
+        3-3：选择关联的表(classes表) ，
+        3-4：选择 class_id 关联 的字段 为 classes表 中的 id字段
+        3-5：DElete 删除和 update 更新 选择的是默认的 ：RESTRICT  （约束 ，默认情况下就是 RESTRICT 选项）
+        3-6：此时 保存不成功 - 因为当前 students表 中 已经存在了 class_id=5 不符合 classes表中的规则了，
+             因此需要先删除 students表 class_id=5 的列数据，先让约束创建成功 让在测试 约束
+
+    4.  约束创建成功 - 测试 往 students 表 添加  一条 不符合 class_id 约束条件的数据
+        执行命令 添加 一条 不符合 class_id 约束条件的（ 不符合 classes 表规则 （ id 班级 只有 1-4） 的数据）
+        命令： insert into students(`name`,`class_id`,`score`,`gender`) values ('aaa',5,60,1);
+
+        报错：#1452 - Cannot add or update a child row: a foreign key constraint fails (`xingxin_test`.`students`, CONSTRAINT `students_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT)
+
+        可见约束成功，除非创建一个 符合 classes 表规则的数据 
+        命令 - 如：insert into students(`name`,`class_id`,`score`,`gender`) values ('aaa',4,60,1);
+        class_id=4
+
+    5. 使用update 更新修改数据  class_id = 5 不符合 classes 表规则 
+        如 命令： update students set class_id = 5 where name='aaa';
+        报错 Cannot add or update a child row: a foreign key constraint fails (`xingxin_test`.`students`, CONSTRAINT `students_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT)
+
+
+        同样的 修改 classes 表内的id 如 将 id=1的 修改为 id=5
+        命令：update classes set id=5 where id=1;
+        报错：ERROR 1451 (23000): Cannot delete or update a parent row: a foreign key constraint fails (`xingxin_test`.`students`, CONSTRAINT `students_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT)
+
+        删除 classes 表内的id =1的列 同样也是 不可以的
+        
+        因为 classes 表内的id 已经是 students 表内的 class_id 外键 所以 classes 表内的id 是不可以随便修改或删除的，当然你在classes 表内 可以添加一列 id=5,也可以修改 name
+        在 设置 外键约束 时 （上方 步骤 3-5： 可见），
+        DElete 删除和 update 更新 都配置了约束选项： RESTRICT，
+
+    6. 当然你如果 你想删除 或 更新操作 如：删除或修改  1班的所有数据 (删除 class_id =1)
+        可以在 创建 外键约束设置 或 修改 外键约束设置  将 DElete 删除和 update 更新 选项为 ： CASCADE （ 级联  意思是 在删除或更新 数据时 关联的表 也会进行 删除或更新 相应的数据 ）
+        （案例：图片  使用外键约束-步骤4-修改外键约束-设置-级联.jpg 中可见）
+
+    7. 修改外键约束 DElete 删除和 update 更新的选项 为  CASCADE （ 级联  意思是 在删除或更新 数据时 关联的表 也会进行 删除或更新 相应的数据 ） ，
+        此时将  classes表中 id=1 修改为 id=5，
+        命令：update classes set id=5 where id=1;
+        修改成功 ，并且 你会发现 students 表中 class_id=1 的数据,
+        同样也会因为 外键约束的 选项 为  CASCADE （ 级联  意思是 在删除或更新 数据时 关联上） 而被修改为 class_id=5,
+        
+        删除也是 同理  操作 classes表中的 id 或 students 表中的 class_id 另一个表 都是会被 关联处理。
+
+外键约束 - 设置 DElete 删除和 update 更新 的选项描述如下：
+    1： CASCADE （ 级联  意思是 在删除或更新 数据时 关联的表 也会进行 删除或更新 相应的数据 ）
+    在父表上update/delete记录时，同步update/delete掉子表的匹配记录
+
+    2：SET NULL
+    在父表上update/delete记录时，将子表上匹配记录的列设为null(要注意子表的外键列不能为not null)
+
+    3：NO ACTION （约束 ， 意思是 禁止 删除或更新修改  外键修改的字段 如: students表中的 class_id=1的 字段 在关联的 classes表中的 id=1字段是能匹配到的 此时是禁止修改或删除的 ）
+    如果子表中有匹配的记录,则不允许对父表对应候选键进行update/delete操作
+
+    4：RESTRICT （约束 ， 意思是 禁止 删除或更新修改  外键修改的字段 如: students表中的 class_id=1的 字段 在关联的 classes表中的 id=1字段是能匹配到的 此时是禁止修改或删除的 ）
+    同no action,都是立即检查外键约束

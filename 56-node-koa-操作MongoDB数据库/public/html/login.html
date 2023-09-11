@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>login</title>
+</head>
+ <!-- 使用 axios 进行ajax 请求 -->
+ <script src="/js/axios.min.js"></script>
+<body>
+    <div>
+        <!-- http://localhost:4399/html/login.html -->
+        login
+    </div>
+    <div>
+        <div>
+            <label>用户名：</label>
+            <input type="text" class="username" placeholder="usexing" />
+            <!-- 正确用户名 usexing -->
+        </div>
+        <div>
+            <label>密码：</label>
+            <input type="password" class="usePassword" placeholder="123456"/>
+            <!-- 正确密码 123456 -->
+        </div>
+        <button onclick="getSubmit()">getSubmit</button>
+        <button onclick="postSubmit()">postSubmit</button>
+        
+    </div>
+</body>
+<!-- fetch() 的第二个参数
+        fetch 的第二个参数是一个 init 配置对象。配置项如下：
+        fetch('http://localhost:8000/getInfo',{
+            method: 'get', 
+            mode: 'XXX',
+            credentials: 'XXX',
+            // ...省略
+        })
+        method: 请求方法，如 get、post、delete 等
+        headers: 请求头信息配置
+        body: 请求体信息，注意 get 和 head 请求不能包含 body 信息。
+        mode: 请求模式，决定发起的是同源请求还是跨域请求，可选项：cors、no-cors、same-origin
+        credentials: 请求的 credentials，为了在当前域名内自动发送 cookie，可选项: omit、same-origin、include
+        cache: 请求的缓存模式，可选项：default、no-store、reload、no-cache、force-cache、only-if-cached
+        redirect: 可用的 redirect 模式，可选项：follow、error、manual
+        referrer: 设置请求来源，可用于资源防盗
+        referrerPolicy: 用于指定 http 头部 referer 字段的值 -->
+<script>
+     var username = document.querySelector('.username');
+        var usePassword = document.querySelector('.usePassword');
+    // get 请求
+    function getSubmit() {
+        console.log(username.value, usePassword.value)
+        // w3c 新增的 fetch （一般说 fetch 是 XMLHttpRequest 的替代方案） 用于发起ajax请求网络资源
+        // 测试1 - get 请求 携带参数 fetch默认为get请求方式
+        fetch(`/user?username=${username.value}&password=${usePassword.value}`,{method: 'get'}).then(res => {
+          // 可以 取到 请求头 和 响应体
+        //   console.log(res);
+           return res.json();
+        }).then(res=>{
+        // 可以 取到 返回的数据
+            console.log(res);
+        }).catch(error => {
+            console.log(error);
+        })
+    };
+    // post 请求
+    function postSubmit() {
+        console.log(username.value, usePassword.value)
+        // w3c 新增的 fetch （一般说 fetch 是 XMLHttpRequest 的替代方案） 用于发起ajax请求网络资源
+        // 测试1 - get 请求 携带参数 fetch默认为get请求方式
+        fetch(`/user`,{
+            method: 'POST',
+            // post 请求方式1：  json 格式参数 +请求头编码格式 'application/json;'
+            // body:JSON.stringify({
+            //     username:username.value,
+            //     password:usePassword.value
+            // }),//传入参数
+            // post 请求方式2： formData 格式参数 + 请求头编码格式 'application/x-www-form-urlencoded'
+            body:`username=${username.value}&password=${usePassword.value}`,
+            headers:{
+                 // post 请求方式1：  json 格式参数 +请求头编码格式 'application/json;'
+                // 'Content-Type':'application/json;'
+            
+                // post 请求方式2：  formData 格式参数 +请求头编码格式 'application/x-www-form-urlencoded'
+                'Content-Type':'application/x-www-form-urlencoded'
+            },// 请求头信息配置 告诉后端传入的参数是什么格式 按什么格式解析
+        }).then(res => {
+          // 可以 取到 请求头 和 响应体
+        //   console.log(res);
+           return res.json();
+        }).then(res=>{
+        // 可以 取到 返回的数据
+            console.log(res);
+        }).catch(error => {
+            console.log(error);
+        })
+    }
+</script>
+
+</html>

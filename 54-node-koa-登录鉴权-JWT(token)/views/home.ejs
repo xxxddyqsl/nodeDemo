@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+</head>
+
+<body>
+    <h1> home- 服务端渲染页面 通过ejs 库 - 渲染ejs模板页 </h1>
+    <button onclick="onExit()">退出登录</button>
+
+    <div class="content gg-flex-1 gg-flex-2">
+
+    </div>
+</body>
+<!-- // !-- 使用 axios 进行ajax 请求 -->
+<script src="/js/axios.min.js"></script>
+<script>
+    // 设置 axios 拦截器 请求发出去之前 携带 token 请求回来之后更新本地存入的token（token的过期时间）
+    axios.interceptors.request.use(function (config) {
+        // console.log(`每次发出请求成功之前,会先执行的方法， `)
+        let token = localStorage.getItem('token');
+        // 每次给后端发请求之前 将token 设置到 header 中 传给 后端 校验 是否过期  Authorization 字段（前后端 共同约定的token字段：Authorization）
+        /*
+            手动模拟测试token失效 ： 手动删除 localStorage 里的token  前端传入头的token ( Authorization: 'Bearer null') 而后端通过req.headers['authorization']?.split(' ')[1]，
+            字符串截获取token出来的 为 'null' string类型 ，
+            字符串 'null' 不为假 进入校验token ，JWT.verify(token) 校验不通过返回 false ，给前端返回 错误码 401 及 数据
+        */
+        // 给后端 传入 token 时 有一个不成文的规定 就是拼接上 Bearer+空格+ token ，当然不这么写 也是可以 只是推荐这样写
+        config.headers.Authorization = `Bearer ${token}`;//拼接上 Bearer+空格+ token
+        console.log(' axios 拦截器', token)
+        return config;
+    }, function (error) {
+        // console.log(`每次发出请求失败之前,会执行的方法`)
+        // Do something with request error
+        return Promise.reject(error);
+    });
+    axios.interceptors.response.use(function (response) {
+        // console.log(`任何请求成功后，第一个调用的方法，然后才会走 下面 axios.post 后的.then()方法`,response)
+
+        // 统一在拦截器中 获取后端设置在header头里面的token字段（前后端 共同约定的：Authorization）
+        const { authorization } = response.headers;// header头里面的Authorization 为小写
+        // 如果后端返回的Authorization为真， 存入 本地
+        authorization && localStorage.setItem('token', authorization)
+        // Any status code that lie within the range of 2xx cause this function to trigger
+        // Do something with response data
+        return response;
+    }, function (error) {
+        console.log(`任何请求失败后，第一个调用的方法`, error)
+        // 统一处理  报错 （token 失效后端返回报错 错误码：401）
+        if (error.response.status === 401) {// token 失效 后端返回401
+            alert(`token过期，请重新登录。 后端返回数据：${error.response.data.Message}`)
+            //  token 失效 销毁 本地存的token
+            localStorage.removeItem('token');
+            // 跳转到 登录页
+            window.location.href = './login'
+        }
+        // Any status codes that falls outside the range of 2xx cause this function to trigger
+        // Do something with response error
+        return Promise.reject(error);
+    });
+</script>
+<script>
+    const content = document.querySelector('.content')
+    getList()
+    // 获取注册 列表 - // 按照 和后端约定的 语义化规范 - RESTful风格规范 编写 请求 - GET 请求为 获取数据
+    function getList() {
+        axios.get(`/home/list`).then(res => {
+            console.log(res);
+            if (res.data.Code != 0) {
+                return alert(`${res.data.Message}`);
+                // axios 拦截器 中 统一处理 token 失效 进入/login登录页
+                // return window.location.href = '/login'
+            }
+            let list = res.data.Data.map((item, index) => {
+                return `
+                    <tr id=${item._id}>
+                        <td>${item._id}</td>
+                        <td>${item.username}</td>
+                        <td>${item.age}</td>
+                    </tr>
+                `
+
+            });
+            let template = `
+                            <div class='list'>
+                                <table border='1'>
+                                    <thead>
+                                        <tr>
+                                            <td>_id</td>
+                                            <td style='display:none'>uid</td>
+                                            <td>用户名</td>
+                                            <td>年龄</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${list.join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            `;
+
+            content.innerHTML = template;
+        }).catch(err => {
+            console.log(err)
+        })
+    }
+
+    // 退出登录
+    function onExit() {
+        //  token 失效 销毁 本地存的token
+        localStorage.removeItem('token');
+        // 跳转到 登录页
+        window.location.href = './login'
+    }
+</script>
+
+</html>

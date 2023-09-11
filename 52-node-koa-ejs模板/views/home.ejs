@@ -6,6 +6,7 @@
     <title>Document</title>
     
 </head>
+<script src="./javascripts/axios.min.js"></script>
 <body>
     <h1> home- 服务端渲染页面 通过ejs 库 - 渲染ejs模板页 </h1>
     <% if(Code==0){%>
@@ -17,7 +18,7 @@
             <!-- <%# console.log(Data) %> -->
             <%var msg=Data.EmojiData.Emotions;
             for(let i in msg){%>
-                <li   onclick="fileOnClick()">
+                <li class=""onclick='fileOnClick(<%=msg[i].title %>)'>
                     <%=msg[i].emoji%>--<%=msg[i].title %>
                 </li>
             <%}%>

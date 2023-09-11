@@ -1,0 +1,397 @@
+MySQL数据库-sql语句
+1.浏览器进入-注意 端口号 不能被占用 否则（黄色）无法启动
+    http://localhost:8085/
+
+2.创建数据库 - 点击左侧栏新建 
+（1）输入数据库名 - xingxin_test
+（2）编码格式为 - utf8mb3_general_ci 或 utf8mb4_general_ci
+    utf8就是utf8mb3的别名，即默认就是utf8mb3。今后的mysql版本中，utf8的默认值可能改为utf8mb4。所以，为了避免出现问题，最好在创建数据库时直接指明是utf8mb3还是utf8mb4
+
+
+3.创建数据库中第一张表
+（1） 表名：students
+（2） 字段数 ：4个 （如果字段不够用 可以在表创建完成之后，上面有 添加 列 点击执行即可）
+（3） 点击执行-创建
+（4） 输入对应字段及其格式：案例参照图片 （ 第一张表-对应字段及其格式案例.jpg）
+    名字          类型               长度/值        默认            。。。后面的字段
+    id           INT                                                   后面的字段，排序规则 可以不用管（默认会按照创建数据库时的 utf8那种格式的）， AI 需要勾选 （为 PRIMARY ，就是主键（id）自增长，就是你往里面插入数据，就会按1,2,3自动增长，并且后面有注释，你也可以注释一下）
+    name         VARCHAR（字符串）   100（字符串长度，如果超出长度会报错） 后面的字段可以不用管
+    score        INT
+    gender       INT（数据通过0或者1表示区分男女，格式也可以是VARCHAR 通过字符 m 或 f 表示区分男女）
+    create_time  TIMESTAMP（时间戳）                CURRENT_TIMESTAMP（设置默认值，在插入的时候自动生成当前的时间戳）
+    class_id     INT （只存入id 如：对应 1班存入1 ，2班存入2，3班存入3,会在创建一个 class 表进行关联 ）
+
+class_id：字段思路说明，只是存入id 如：对应 1班存入1 ，2班存入2，3班存入3,
+但是 班级 可能会发生变化 （可能会叫 ：实验班，优秀班等等），因此建议使用两个表来存数据， 将来会单独创建一张class的表进行关联,
+而 class 表内 存入的是班级的 具体信息，班级 发生变动时 也只需要修改 class 表内存入的内容即可 
+如：1班 改为 实验班 ，那就是可以 联表查询 把class 表内 id（类似于购物车中的商品id 根据id查询出商品的一些信息） 为1的 改为 实验班，而 students 表不需要改动
+
+
+
+sql语句：
+特别注意: 在mysql中，当一条SQL语句编写完毕后，一定要使用分号; 进行结尾，否则系统认为这条语句还没有结束。
+
+1.数据库的基本操作：
+    1-1.创建数据库：
+
+        (1)基本命令语法：创建数据库
+        命令：create database 数据库名称; (如： create database xingxin_test;)
+
+        (2)创建数据库 xingxin_test，并同时指定编码格式：
+        命令：create database xingxin_test default charset=utf8; (如： create database xingxin_test; )
+        (3)如果存在不报错（if not exists）
+        命令：create database if not exists xingxin_test default charset=utf8;
+        说明：不能创建相同名字的数据库！
+
+    扩展：编码格式：常见的gbk（中国的编码格式）与utf8（国际通用编码格式），后来5.6版本以后又进行了升级utf8mb4,utf8就是utf8mb3的别名，即默认就是utf8mb3。今后的mysql版本中，utf8的默认值可能改为utf8mb4。所以，为了避免出现问题，最好在创建数据库时直接指明是utf8mb3还是utf8mb4
+
+    1-2.查询已创建数据库：
+
+        (1)基本命令语法：显示所有数据库
+        命令语法：
+        命令：show databases;
+            
+        (2)显示某个数据库的数据结构：
+        命令语法：
+        命令：show create database 数据库名称;(如：show create database xingxin_test; )
+    
+    1-3.修改数据库信息：
+        在MySQL5以后的版本中，MySQL不支持更改数据库的名称。我们所谓的修改数据库主要修改的是数据库的编码格式.
+        (1)基本语法：
+        命令：alter database数据库名称 default charset=新的编码格式; (如： alter database xingxin_test default charset=utf8mb4_general_ci)
+
+    1-4.删除数据库：
+        (1)基本语法：
+        命令：drop database 数据库名称; (如： drop database xingxin_test  )
+
+
+2.数据表的基本操作：
+    2-1.数据表的创建：
+        (1)基本语法：
+        命令：create table 数据表名称 (
+            字段1 字段类型 [字段约束]，
+            字段2 字段类型 [字段约束]，
+            …
+            ); 
+        如： 
+        create table students ( 
+            id INT  AUTO_INCREMENT ,
+            name  VARCHAR(100),
+            score INT, // 分数
+            gender INT, // gender=1（1=男 0=女），
+            create_time TIMESTAMP   CURRENT_TIMESTAMP  DEFAULT_GENERATED,
+            class_id INT ) //class_id 班级id
+        解释说明： 创建一个 名为：students 的表 里面的字段 为 id, name ,score, gender , create_time ,class_id
+        字段类型解释：
+        INT: 整数类型，范围为-2147483648到2147483647
+        VARCHAR(size): 可变长度的字符串类型，size是该字符串的最大长度，最大值可以达到65535个字符
+        DATE: 日期类型，格式为'yyyy-mm-dd'，范围是'1000-01-01'到'9999-12-31'
+        TIMESTAMP: 时间类型，格式为'yyyy-mm-dd hh:mm:ss'，范围是'1970-01-01 00:00:01'到'2038-01-19 03:14:07'
+
+3.查询已创建数据表：
+    3-1. 选择数据库
+    命令：use 数据库名; ( 如 use xingxin_test;)
+
+    3-2.显示所有数据表（当前所在的 数据库）
+    命令：show tables;
+    3-2. 查询表内的结构 字段就字段类型
+    命令：show create table 数据表名称; ( 如 show create table students;)
+    或
+    desc 数据表名称;( 如 desc students;)
+
+
+4.修改数据表信息：
+    4-1.数据表字段添加：
+    命令：alter table 数据表名称 add 新字段名称 字段类型 first|after 其他字段名称; 
+    ( 如 alter table students add age int first; 或 alter table students add age int after name;)
+    选项说明：
+    first：把新添加的字段放在第一位
+    after 字段名称：把新添加字段放在指定字段的后面
+
+    4-2.修改字段名称或字段类型：
+    修改字段名称与字段类型（也可以只修改名称）
+    命令：alter table 数据表名称 change 旧字段名 新字段名 类型; (如：alter table students change name username VARCHAR(100); )
+
+    仅修改字段的类型:
+    命令：alter table 数据表名称 modify 字段名 类型;  (如：alter table students modify name   char(100); )
+
+    4-3.删除某个字段：
+    命令：alter table 数据表名称 drop 字段名称; (如：alter table students drop name; )
+
+    4-4.修改数据表引擎(MyISAM或InnoDB):
+    命令： alter table 数据表名称 engine=myisam;  (如：alter table students engine=myisam; )
+
+    4-5.修改数据表的编码格式：
+    命令： alter table 数据表名称 default charset=gbk; (如：alter table students  default charset=utf8mb3_general_ci; )
+    4-6.修改数据表名称：
+    4-6-1 命令： rename table 旧数据表名称 to 新数据表名称;  (如：rename table students  to newstudents; )
+    或
+    4-6-2 命令：alter table 旧数据表名称 rename 新数据表名称; (如：alter table  students  rename newstudents; )
+
+    4-6-3 扩展：重命名的同时移动数据表到指定的数据库
+    命令：rename table 数据库名称.旧数据表名 to 另一个数据库名称.新数据表名;  (如：rename table xingxin_test.students  to newxingxin_test.newstudents; )
+
+    4-7.删除数据表：
+    命令： drop table 数据表名称; (如： drop table students; )
+
+
+5.数据的增删改查（重点）：
+
+    5-1.增加操作： 增 注意：字段的引号 和 值 字符串引号的 区别
+        增加数据的基本语法： 
+        命令： insert into 数据表名称([字段1,字段2,字段3...]) values (字段1的值,字段2的值,字段3的值.....);
+        (如: insert into students(`id`,`name`, `score`, `gender`,  `class_id`) values (null,'小明',100,0,1);  )
+        可以不设置 id（id是自增的可以设置为null,或者直接不设置） 和 create_time（也可以不设置 是自动的用时间戳） 的值，gender=1（1=男 0=女），class_id 班级id
+特别注意：在SQL语句中，除了数字，其他类型的值都需要使用引号引起来，否则插入时会报错
+
+    5-2.数据的查询操作： 查
+        // 查询数据表内所有的数据 
+        5-2-1： 查询数据表内所有的数据  *代表查询所有字段  [where 查询条件]
+        基本语法： select * from 数据表名称 [where 查询条件]; 查询条件可 省略 如 select * from students;
+        命令：select * from 数据表名称 where 1; (如： select * from students where 1; 查询students表内所以的数据 )
+
+         // 查询 所有数据的 某个字段 (可 多个字段)
+        5-2-2： 查询所有的数据某个字段 (可 多个字段)
+        基本语法： select 字段名1,字段名2 from 数据表名称 [where 查询条件];
+        命令： select id,name from students where 1;
+
+        // 条件 查询
+        5-2-3： 查询数据表内 指定的数据
+        基本语法：select * from 数据表名称 [where 查询条件]; 
+
+        方式1： 只查询id=2的小伙伴信息
+        命令： select * from students where id=2;
+
+        方式2： 查询分数大于90的小伙伴的信息
+        命令： select * from students where score>90;
+
+        方式2： 查询分数大于90的并且是男性的信息 - 通过 and 可 连接 多个条件
+        命令： select * from students where score>=100 and gender=1;
+
+        //模糊查询 -  like模糊查询，有点类似于管道命令中的数据检索。有两个关键字，% 百分号与 _ 下划线，%代表任意个字符，_代表任意的某个字符（只能匹配1个）
+        5-2-4：基本语法： select * from 数据表名称  where 字段名 like '%k%'
+            5-2-4-1：命令：select * from students  where name like '%试%';
+            解释说明： %表示任意字符串 而 %试% 表示  试的前一位和后一位可以是任意字符串 , 就是 name 中 必须包含 试 的字段
+            执行命令输出如下：
+            +----+-------------+-------+--------+---------------------+----------+
+            | id | name        | score | gender | create_time         | class_id |
+            +----+-------------+-------+--------+---------------------+----------+
+            |  6 | 测试1       |    80 |      1 | 2023-09-04 16:51:25 |        2 |
+            |  7 | 测试3       |    80 |      1 | 2023-09-04 16:51:35 |        2 |
+            |  8 | 测试        |   100 |      1 | 2023-09-04 16:54:02 |        2 |
+            |  9 | a测试3ccc   |    80 |      1 | 2023-09-04 17:02:16 |        2 |
+            +----+-------------+-------+--------+---------------------+----------+
+
+            5-2-4-2：命令：select * from students  where name like '%试';
+            解释说明： %表示任意字符串 而 %试  试的前一位可以是任意字符串  但是必须以 试 为结尾
+            +----+--------+-------+--------+---------------------+----------+
+            | id | name   | score | gender | create_time         | class_id |
+            +----+--------+-------+--------+---------------------+----------+
+            |  8 | 测试   |   100 |      1 | 2023-09-04 16:54:02 |        2 |
+            +----+--------+-------+--------+---------------------+----------+
+
+             5-2-4-3：命令：select * from students  where name like '小%';
+            解释说明： %表示任意字符串 而 试%  试的后一位可以是任意字符串  但是必须以 试 为开头的
+            +----+---------------+-------+--------+---------------------+----------+
+            | id | name          | score | gender | create_time         | class_id |
+            +----+---------------+-------+--------+---------------------+----------+
+            |  2 | 小明          |    91 |      1 | 2023-09-04 16:01:50 |        2 |
+            |  3 | 小红          |    98 |      0 | 2023-09-04 16:02:10 |        1 |
+            |  4 | 小黄          |    81 |      0 | 2023-09-04 16:18:38 |        3 |
+            | 10 | 小测试3ccc    |    80 |      1 | 2023-09-04 17:31:01 |        2 |
+            +----+---------------+-------+--------+---------------------+----------+
+
+            5-2-4-4：命令：select * from students  where name like '小_';
+            解释说明： _代表任意的某个字符 而'小_'  小的后一位可以是任意字符串  但是必须以 小 为开头 （只能匹配1个）
+            +----+--------+-------+--------+---------------------+----------+
+            | id | name   | score | gender | create_time         | class_id |
+            +----+--------+-------+--------+---------------------+----------+
+            |  2 | 小明   |    91 |      1 | 2023-09-04 16:01:50 |        2 |
+            |  3 | 小红   |    98 |      0 | 2023-09-04 16:02:10 |        1 |
+            |  4 | 小黄   |    81 |      0 | 2023-09-04 16:18:38 |        3 |
+            +----+--------+-------+--------+---------------------+----------+
+        // 排序
+            5-2-5：基本语法： select 字段名,字段名称 from 数据表名称  ORDER BY score;
+            ORDER BY 字段名 正向排序（从小到大 ）
+            5-2-5-1：命令：select id,name,score,gender from students  ORDER BY score;   
+            解释说明 ： select 要查询显示的字段名（可多个或单个或 * 所有） from students  ORDER BY score;   ORDER BY 正向排序（从小到大 ）按照分数进行排序
+            命令：select id,name,score,gender,class_id from students  ORDER BY score;
+                +----+---------------+-------+--------+----------+
+                | id | name          | score | gender | class_id |
+                +----+---------------+-------+--------+----------+
+                |  6 | 测试1         |    80 |      1 |        2 |
+                |  7 | 测试3         |    80 |      1 |        2 |
+                |  9 | a测试3ccc     |    80 |      1 |        2 |
+                | 10 | 小测试3ccc    |    80 |      1 |        2 |
+                |  4 | 小黄          |    81 |      0 |        3 |
+                |  2 | 小明          |    91 |      1 |        2 |
+                |  3 | 小红          |    98 |      0 |        1 |
+                |  1 | admin         |   100 |      1 |        1 |
+                |  5 | 张三          |   100 |      1 |        2 |
+                |  8 | 测试          |   100 |      1 |        2 |
+                +----+---------------+-------+--------+----------+
+
+            ORDER BY 字段名  desc 反向排序（从大到小 ）
+            5-2-5-1：命令：select id,name,score from students  ORDER BY score desc;
+            解释说明 ： select 要查询显示的字段名（可多个或单个或 * 所有） from students  ORDER BY score desc;   ORDER BY  字段名 desc 反向排序（从大到小 ）按照分数进行排序
+            命令：select id,name,score from students  ORDER BY score desc;
+            +----+---------------+-------+--------+---------------------+----------+
+            | id | name          | score | gender | create_time         | class_id |
+            +----+---------------+-------+--------+---------------------+----------+
+            |  1 | admin         |   100 |      1 | 2023-09-04 16:00:55 |        1 |
+            |  5 | 张三          |   100 |      1 | 2023-09-04 16:50:30 |        2 |
+            |  8 | 测试          |   100 |      1 | 2023-09-04 16:54:02 |        2 |
+            |  3 | 小红          |    98 |      0 | 2023-09-04 16:02:10 |        1 |
+            |  2 | 小明          |    91 |      1 | 2023-09-04 16:01:50 |        2 |
+            |  4 | 小黄          |    81 |      0 | 2023-09-04 16:18:38 |        3 |
+            |  6 | 测试1         |    80 |      1 | 2023-09-04 16:51:25 |        2 |
+            |  7 | 测试3         |    80 |      1 | 2023-09-04 16:51:35 |        2 |
+            |  9 | a测试3ccc     |    80 |      1 | 2023-09-04 17:02:16 |        2 |
+            | 10 | 小测试3ccc    |    80 |      1 | 2023-09-04 17:31:01 |        2 |
+            +----+---------------+-------+--------+---------------------+----------+
+
+            5-2-5-2：扩展 多个字段 排序规则
+            基本语法： select * from 数据表名称 ORDER BY 字段1 , 字段2 desc;
+            命令：select * from students  ORDER BY  class_id , score desc;
+            解释说明： 排序规则为： ORDER BY 从小到大排序  按班级 （class_id）字段, 在按 分数（score） 字段 desc （从大到小 ）
+            +----+---------------+-------+--------+---------------------+----------+
+            | id | name          | score | gender | create_time         | class_id |
+            +----+---------------+-------+--------+---------------------+----------+
+            |  1 | admin         |   100 |      1 | 2023-09-04 16:00:55 |        1 |
+            |  3 | 小红          |    98 |      0 | 2023-09-04 16:02:10 |        1 |
+            |  5 | 张三          |   100 |      1 | 2023-09-04 16:50:30 |        2 |
+            |  8 | 测试          |   100 |      1 | 2023-09-04 16:54:02 |        2 |
+            |  2 | 小明          |    91 |      1 | 2023-09-04 16:01:50 |        2 |
+            |  6 | 测试1         |    80 |      1 | 2023-09-04 16:51:25 |        2 |
+            |  7 | 测试3         |    80 |      1 | 2023-09-04 16:51:35 |        2 |
+            |  9 | a测试3ccc     |    80 |      1 | 2023-09-04 17:02:16 |        2 |
+            | 10 | 小测试3ccc    |    80 |      1 | 2023-09-04 17:31:01 |        2 |
+            |  4 | 小黄          |    81 |      0 | 2023-09-04 16:18:38 |        3 |
+            +----+---------------+-------+--------+---------------------+----------+
+
+
+
+
+        // 分页 - LIMIT 是限制要几条数据  OFFSET 是偏移（跳过）几条数据
+            5-2-6：基本语法： select 字段名,字段名称 from 数据表名称  LIMIT 50 OFFSET 0;
+            (pageNum-1)*pagesize).limit(pagesize)
+            命令：select * from students LIMIT 4 OFFSET 0; LIMIT取4条数据  OFFSET 跳过0条
+            +----+--------+-------+--------+---------------------+----------+
+            | id | name   | score | gender | create_time         | class_id |
+            +----+--------+-------+--------+---------------------+----------+
+            |  1 | admin  |   100 |      1 | 2023-09-04 16:00:55 |        1 |
+            |  2 | 小明   |    91 |      1 | 2023-09-04 16:01:50 |        2 |
+            |  3 | 小红   |    98 |      0 | 2023-09-04 16:02:10 |        1 |
+            |  4 | 小黄   |    81 |      0 | 2023-09-04 16:18:38 |        3 |
+            +----+--------+-------+--------+---------------------+----------+
+
+            分页 基本公式语法：select * from students LIMIT pagesize OFFSET (pageNum-1)*pagesize ;
+            解释说明：OFFSET (pageNum-1)*pagesize 公式：(pageNum-1)*pagesize ，（ *pagesize 为 每一页 要跳过的多少条数据） 前端传入 pageNum = 1 为第一页 要跳过的数据 ，LIMIT pagesize 要 pagesize 条的数据
+                 
+            如 ：每页 5 条数据  第二页的数据   ((2-1)*5) = 1*5=5
+            命令：select * from students LIMIT 5 OFFSET 5 ;
+
+            扩展1：分页 组合 排序 使用
+            如 按score分数排序  倒序 （从大到小 ） 取4条数据 第一页
+            命令：select * from students  ORDER BY score desc limit 4 offset 0;
+            +----+--------+-------+--------+---------------------+----------+
+            | id | name   | score | gender | create_time         | class_id |
+            +----+--------+-------+--------+---------------------+----------+
+            |  1 | admin  |   100 |      1 | 2023-09-04 16:00:55 |        1 |
+            |  5 | 张三   |   100 |      1 | 2023-09-04 16:50:30 |        2 |
+            |  8 | 测试   |   100 |      1 | 2023-09-04 16:54:02 |        2 |
+            |  3 | 小红   |    98 |      0 | 2023-09-04 16:02:10 |        1 |
+            +----+--------+-------+--------+---------------------+----------+
+
+            扩展2：分页 组合 排序 + 只取指定字段（ id,name,score,gender ） 使用
+            如 按score分数排序  倒序 （从大到小 ） 取4条数据 第一页
+            命令：select id,name,score,gender from students  ORDER BY score desc limit 4 offset 0;
+            +----+--------+-------+--------+
+            | id | name   | score | gender |
+            +----+--------+-------+--------+
+            |  1 | admin  |   100 |      1 |
+            |  5 | 张三   |   100 |      1 |
+            |  8 | 测试   |   100 |      1 |
+            |  3 | 小红   |    98 |      0 |
+            +----+--------+-------+--------+
+
+            // 查询数据总条数  * 为所有
+         5-2-7：基本语法：select count(*) from  数据表名称 ;
+            命令：select count(*) from students;
+                +----------+
+                | count(*) |
+                +----------+
+                |       10 |
+                +----------+
+            扩展1：这里的 count(*)  可以在其后自定义一个name名 表示 数据总条数 如下：
+            自定义name  表示 数据总条数:
+            命令：select count(*) mynum from students;
+                +-------+
+                | mynum |
+                +-------+
+                |    10 |
+                +-------+
+            扩展2： 组合 之前的 where 过滤条件 进行查询使用
+            只查询 gender=1 （男性）的总数据
+            命令：select count(*) mynum from students where gender=1;
+                +-------+
+                | mynum |
+                +-------+
+                |     8 |
+                +-------+
+联表查询- 在 59-node-MySQL数据库-sql语句-02 学习案例中
+
+
+
+    5-3.数据的修改操作：改
+        基本语法：  update 数据表名称 set 字段1=更新后的值，字段2=更新后的值 ....where 更新条件;
+        (如： update students set password='1234',age=18 where name='小明' ) 指定更新 name=小明的数据
+
+         5-3-1：更新条件 场景如下： 指定 修改 id = 4 的数据列 name 和 score 字段的值
+        命令 ： update students set name = '小黑',score = 90 where id = 4;
+
+特别说明：如果在更新数据时，不指定更新条件，则会把这个数据表的所有记录全部更新一遍
+
+        5-3-2：更新条件 场景如下：
+        案例：修改’username=小鹿’这条记录，将其年龄更新为22岁，家庭住址更新为广东省广州市
+        命令：update students set age=22,address='广东省广州市' where username='小鹿';
+
+        5-3-2： 不指定更新条件 - 把这个数据表的所有记录全部更新一遍 场景如下：
+        案例：过了一年，每个人的年龄都增加了一岁
+        命令：update students set age=age+1;
+
+        实测案例 命令： update students set score=score+1;
+        查询结果： select * from students;  再次通过  update students set score=score-1; 修改分数
+        +----+---------------+-------+--------+---------------------+----------+
+        | id | name          | score | gender | create_time         | class_id |
+        +----+---------------+-------+--------+---------------------+----------+
+        |  1 | admin         |   101 |      1 | 2023-09-04 16:00:55 |        1 |
+        |  2 | 小明          |    92 |      1 | 2023-09-04 16:01:50 |        2 |
+        |  3 | 小红          |    99 |      0 | 2023-09-04 16:02:10 |        1 |
+        |  4 | 小黄          |    82 |      0 | 2023-09-04 16:18:38 |        3 |
+        |  5 | 张三          |   101 |      1 | 2023-09-04 16:50:30 |        2 |
+        |  6 | 测试1         |    81 |      1 | 2023-09-04 16:51:25 |        2 |
+        |  7 | 测试3         |    81 |      1 | 2023-09-04 16:51:35 |        2 |
+        |  8 | 测试          |   101 |      1 | 2023-09-04 16:54:02 |        2 |
+        |  9 | a测试3ccc     |    81 |      1 | 2023-09-04 17:02:16 |        2 |
+        | 10 | 小测试3ccc    |    81 |      1 | 2023-09-04 17:31:01 |        2 |
+        | 12 | aaa           |    61 |      1 | 2023-09-06 15:08:33 |        5 |
+        +----+---------------+-------+--------+---------------------+----------+
+
+
+    5-4.数据的删除操作：删
+        基本语法：delete from 数据表名称 [where 删除条件];
+          (如： delete from students where name=小明; ) 指定删除 name=小明的数据
+        
+        5-4-1: 删除 场景如下：
+        案例：删除 students 表中,id=1的用户信息
+        命令： delete from students where id=1;
+
+        5-4-2： 清空数据表操作
+            delete from 与truncate清空数据表操作：
+        方式1：
+        delete from 数据表名称;  (如： delete from students; ) 清空 students 数据表
+        或
+        方式2： truncate 数据表名称;   (如： delete from students; ) 清空 students 数据表
+
+    delete from 和truncate区别：

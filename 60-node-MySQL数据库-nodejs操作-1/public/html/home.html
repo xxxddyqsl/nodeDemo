@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- public 为 静态资源文件 直接 访问 根  -->
+    <script src="/js/axios.min.js"></script>
+</head>
+
+<body>
+    <!--访问当前页面：  http://localhost:4399/html/home.html  -->
+    <table border="1">
+        <thead>
+            <tr>
+                <td>id</td>
+                <td>用户名</td>
+                <td>班级</td>
+                <td>性别</td>
+                <td>分数</td>
+                <td>时间</td>
+                <td>操作</td>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</body>
+<script>
+    // get 请求传参数方式1： query 格式  &拼接多个参数
+    // axios.get('/api/home/list?pageNumber=1&pageSize=5')
+    // get 请求传参数方式2： 参数 放在 config 中 的 params中  注意这里 传参数 params 必写
+    axios.get('/api/home/list',{
+        params:{
+            pageNum:1,
+            pageSize:5
+        }
+    })
+    .then((result) => {
+        console.log(result)
+        let node= document.querySelector('table>tbody');
+        console.log(node)
+        if(result.data.Code == 0){
+           let list= result.data.Data.map(item=>`
+                <tr id='${item.id}'>
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.class_id}班</td>
+                    <td>${item.gender==1?'男':'女'}</td>
+                    <td>${item.score}</td>
+                    <td>${item.create_time}</td>
+                    <td>
+                        <button>修改</button>
+                        <button> 删除</button>
+                    </td>
+                </tr>`).join('');
+                node.append(list)
+        }
+    }).catch((err) => {
+        
+    });
+</script>
+</html>

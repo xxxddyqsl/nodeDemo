@@ -5,6 +5,8 @@
 node_modules
 # 忽略 db 目录（数据库内容存放文件） 下的所有文件 - 需要重新自行创建
 db
+# 以星号" * "通配多个字符，即匹配多个任意字符；使用两个星号" ** " 表示匹配任意中间目录 忽略 public/uploads 下 文件上传时 存储在文件夹里的文件
+/**/public/uploads
 # ReactDemo/node_modules
 # reactts/node_modules
 # reactmui/node_modules
