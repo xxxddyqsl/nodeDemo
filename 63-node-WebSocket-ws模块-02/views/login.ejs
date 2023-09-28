@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+   <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <h1 class="test">chat-websocket聊天+Token验证权限-登录页-token </h1>
+    <div>
+        <div>
+            用户名：<input type="text" id="username" value="admin">
+        </div>
+        <div>
+            密码：<input type="password" id="password" value="123">
+        </div>
+        <button onclick="login()">登录</button>
+        <button onclick="ToRegister()">进入注册页</button>
+    </div>
+</body>
+ <!-- 使用 axios 进行ajax 请求 -->
+ <script src="js/axios.min.js"></script>
+<script>
+    let targetOrigin;
+      window.addEventListener('message',(event)=>{
+        targetOrigin =event.origin;
+        console.log(event,top,parent)
+        // iframe 跨域通信 - 修改 父 window 下的变量
+        top.postMessage({type:'variable',payload:'ajaxSending',parameter:true},targetOrigin)
+         // iframe 跨域通信 - 调用父 window 下的函数
+        top.postMessage({type:'TopFn',payload:'resetIframe',parameter:[10]},targetOrigin)
+    })
+    // 设置 axios 拦截器 请求发出去之前 携带 token 请求回来之后更新本地存入的token（token的过期时间）
+    // login 页 登录  不用传入 token 给后端
+    // axios.interceptors.request.use(function (config) {
+    //     // console.log(`每次发出请求成功之前,会先执行的方法， `)
+    //     // console.log(config)
+    //     return config;
+    // }, function (error) {
+    //     // console.log(`每次发出请求失败之前,会执行的方法`)
+    //     // Do something with request error
+    //     return Promise.reject(error);
+    // });
+
+    axios.interceptors.response.use(function (response) {
+        // console.log(`任何请求成功后，第一个调用的方法，然后才会走 下面 axios.post 后的.then()方法`,response)
+
+        // 统一在拦截器中 获取后端设置在header头里面的token字段（前后端 共同约定的：Authorization）
+        const {authorization} = response.headers; // header头里面的Authorization  A为小写
+        console.log(authorization);
+        // 如果后端返回的Authorization为真，token 存入 本地 
+        authorization&&localStorage.setItem('token',authorization)
+        
+    // Any status code that lie within the range of 2xx cause this function to trigger
+    // Do something with response data
+    return response;
+  }, function (error) {
+    // console.log(`任何请求失败后，第一个调用的方法`)
+
+    // Any status codes that falls outside the range of 2xx cause this function to trigger
+    // Do something with response error
+    return Promise.reject(error);
+  });
+</script>
+<script>
+    function getCookie() {
+        // 获取 cookie
+        let cookieData = {};
+        document.cookie.split(';').forEach((param) => {
+            // 以=分割 数组每一项 的 字符串 取出key val
+            let [key, val] = param.split('=');
+            key = key.replace(/\s+/g, "");// 去除空格
+            cookieData[key] = val;
+        })
+        return cookieData;
+    }
+    function getParams() {
+        return {
+            username: document.querySelector('#username').value,
+            password: document.querySelector('#password').value,
+        }
+    }
+    /*
+        按照 和后端约定的 语义化规范 - RESTful风格规范 编写 正常来说应该是使用 put 请求，
+        但是登陆的话不是单独请求一个资源，而是对于用户信息验证，创建一个会话session。一般用POST请求。
+        如果不是创建session，而是获取一个不会存在服务端的token并且没有保存登录状态的需求，只是临时登录验证token 可以使用 put
+    */
+    function login() {
+        
+        let params = getParams();
+        console.log(params)
+        axios.post('/login',{...params}).then(res=>{
+            // 统一 在 上方配置的 axios 中进行 取token 存入本地
+            // res.headers 获取 后端 返回 header 头 token就在里面， res.headers（是一个对象） es6解构的方式 取出 Authorization 字段为 前端和后端共同约定好的自定义token字段名
+            // let {Authorization}=res.headers;
+            // // 将 token 存入 本地 后续调用 访问 接口 或者 路由 时传入（设置在header中 ）给 后端 校验
+            console.log(res);
+            // res.data  获取后端返回的 数据
+            // alert(`${res.data.Message}`)
+            // if(res.data.Code==0){
+            //     window.location.href = './chat'
+            // }
+        }) .catch(function (error) {
+            console.log(error);
+        });
+       
+    }
+    // 进入注册 页
+    function ToRegister(){
+        window.location.href = './register'
+    }
+</script>
+
+</html>

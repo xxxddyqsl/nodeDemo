@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天室</title>
+    <style>
+        .message{
+            width: 530px;
+            height: 400px;
+            font-size: 14px;
+            border: 1px solid red;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            flex-direction: column;
+        }
+        .message .msg_item_left,.msg_item_right{
+            width: 60%;
+            display: flex;
+        }
+        .msg_item_left{
+            
+            margin-right: auto;
+        }
+        .msg_item_right{
+            margin-left: auto;
+        }
+        .msg_item_content{
+            display: flex;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>聊天室-模拟群聊</h1>
+    <h4 class="User">
+
+    </h4>
+    <div class="message">
+
+    </div>
+    <button onclick="sendBroadcast()">广播消息给其他用户</button>
+</body>
+<script src="/js/util.js"></script>
+<script>
+    // 用户列表
+    let  chatUsers = JSON.parse(localStorage.getItem('chatUsers'));
+    let User = localStorage.getItem('User');
+    let defaultUser='AAA'
+        if(!chatUsers){
+            // 设置自己假的 用户id 
+            localStorage.setItem('chatUsers',JSON.stringify([defaultUser]))
+            localStorage.setItem('User',defaultUser)
+        }else{
+            defaultUser = chatUsers+(Number(chatUsers.length)+1);
+            localStorage.setItem('User',defaultUser)
+            chatUsers.push(defaultUser)
+            localStorage.setItem('chatUsers',JSON.stringify(chatUsers))
+        }
+    
+    document.querySelector('.User').innerHTML='userId:'+defaultUser;
+     
+    // 客户端 创建  websocket
+    const ws = new WebSocket('ws://localhost:8080');
+    // WebSocket 对象有两个方法：send()和close()。send方法去发送消息。
+    //连接 成功后触发回调 - 一旦服务端响应WebSocket连接请求，就会触发open事件。响应的回调函数称为onopen。
+    ws.onopen = (e) => {
+        console.log(e,)
+        // 给服务端 发送消息 - 字符串 转 blob
+        let data=JSON.stringify({senderId:defaultUser,content:`chat-${defaultUser}-客户端-连接成功-发送消息`,})
+        ws.send(util.stringToBlob(data))
+    }
+    // 当消息被接受会触发消息事件，响应的回调函数叫做onmessage。如下：
+    // 除了文本消息，WebSocket消息机制还能处理二进制数据，有Blob和ArrayBuffer两种类型，在读取到数据之前需要决定好数据的类型。
+    ws.onmessage = async (msg) => {
+        // 返回的数据类型 -  //将Blob 对象转换成 ArrayBuffer
+        let {buf,reader} =  await util.SocketType(msg.data, ws)
+        // ArrayBuffer 转 字符串
+        let str =  await util.ArrayBufToString(buf,reader)
+        console.log(msg, ws.binaryType)
+        createMessage(str)
+        console.log('data==>', str)
+    }
+    // 如果发生意外的失败会触发error事件 异常处理
+    ws.onerror = (err) => {
+        console.error(err)
+    }
+    // 连接关闭的时候回触发这个事件，对应onclose方法，连接关闭之后，服务端和客户端就不能再收发消息。
+    ws.onclose = (e) => {
+        console.log("Connection closed", e);
+    }
+    function msgContent(value){
+        // 给服务端 发送消息 - json对象 转 字符串 转 blob
+        let data=JSON.stringify({senderId:defaultUser,content:value,})
+        return data;
+    }
+    const sendBroadcast=()=>{
+        let msg=msgContent(`chat-${defaultUser}-客户端-发送广播消息给其他用户-自己收不到`)
+        ws.send(msg)
+        // 本地创建 一条自己发出的消息
+        createMessage(msg)
+    }
+    function createMessage(msg){
+        let data = JSON.parse(msg);
+        let html;
+        if(data.senderId == 'serverId' ){
+            return console.log('登录成功')
+        }
+        let node =document.createElement('div');
+        
+        if(data.senderId==defaultUser){
+            node.className='msg_item_right'
+            html=`
+                    <div  class='msg_item_content'>${data.content}</div>
+                    <span>：${defaultUser}</span>
+            `
+        }else{
+            node.className='msg_item_left'
+            html=`
+                    <span>${data.senderId}：</span>
+                    <div class='msg_item_content'>${data.content}</div>
+            `
+        }
+        node.innerHTML=html;
+        document.querySelector('.message').append(node)
+    }
+</script>
+
+</html>
