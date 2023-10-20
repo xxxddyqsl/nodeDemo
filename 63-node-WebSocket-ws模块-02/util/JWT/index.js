@@ -4,18 +4,21 @@
 // 导入第三方 库 生成 token 与 验证 token 需要配置 在应用级中间件
 const jwt = require('jsonwebtoken')
 const seceret = 'xing-anydata';// 先写一个 固定密钥 ，后续改成随机生成数字 并存入数据库
-
+// 引入 M 层 操作数据库 存入 生成的 token
+// const loginModel = require('../model/loginModel');
 const JWT = {
     // 生成 token
     generate: (data, expires) => {
         // jwt.sign(加密数据,密钥,过期时间{})
-        return jwt.sign(
+        const token = jwt.sign(
             data,
             seceret,
             {
                 expiresIn: expires,//过期时间 - 默认毫秒 1000*60 = 1分钟 1000*60*60=1小时
             }
         )
+        console.log(data)
+        return token;
     },
     // 校验 token
     verify:(token,)=>{

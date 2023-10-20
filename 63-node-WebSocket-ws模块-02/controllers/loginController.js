@@ -23,9 +23,12 @@ const loginController = {
             let obj = users[0];
                // 登录成功 生成token data[0]加密数据   过期时间-字符串类型(默认毫秒 1000*60 = 1分钟 1000*60*60=1小时 ，或'10s'=>10秒 或'1h'=>1小时 或 '1d'=>1天  )
                const token =JWT.generate(obj[0],(1000*60*5).toString());// 过期时间 5 分钟
+            // 生成的 token 存入 数据库 users 表
+            const newdata = await loginModel.setData('users', {token:token,id:obj[0].id},'id');
+            console.log(newdata)
                 //  headers 里 设置 token
-               ctx.set('Authorization',token)
-               data = {Code:0,Message:'login - 登录成功'}
+               ctx.set('Authorization',token);
+               data = {Code:0,Message:'login - 登录成功'};
         }else{
             data={ Code: -1,Message:`账号密码错误` };
         }

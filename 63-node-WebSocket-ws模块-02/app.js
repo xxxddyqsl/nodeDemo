@@ -1,5 +1,7 @@
+// 创建 koa 服务器
 const koa = require('koa')
 const app = new koa();
+// var logger = require('morgan');
 // 修正文件路径
 const path = require('path')// 如 使用path.join(__dirname, 'public')为根据windows或Linux系统环境拼接的绝对路径
 // 引入 静态资源模块管理
@@ -12,10 +14,14 @@ const bodyParser = require('koa-bodyparser')
 const router = require('./routers')
 // 导入 自定义 封装 生成及校验 token 模块
 const JWT = require('./util/JWT')
-const SocketServer = require('./webSocket');
+//   require('./webSocket');
+const loginModel = require('./model/loginModel');
 // console.log(SocketServer)
 // 将 koa-bodyparser 模块 配置 注册成应用级中间件
 app.use(bodyParser())// 解析获取前端 post请求 传入的参数
+
+ // 常规是开发阶段使用（有没有该模块都可以） 记录请求
+//  app.use(logger('dev'));//记录 发起的请求 显示在终端的请求记录 如 ：GET / 200 10.620 ms - 207 （返回请求的方式(get) 状态码(200) 请求的时间(10.620 ms) 返回的状态码(207)）
 
 // 静态资源模块管理 配置注册 成 应用级中间件 - 测试是否能够获取到静态资源 访问：http://localhost:4399/html/home.html
 app.use(static(
@@ -48,6 +54,9 @@ app.use(async (ctx, next) => {
         if (payload) {
             // 未过期 - 有效 token，重新计算token 过期时间  重新生成token { _id username }加密数据   过期时间-字符串类型(默认毫秒 1000*60 = 1分钟 1000*60*60=1小时 ，或'10s'=>10秒 或'1h'=>1小时 或 '1d'=>1天  )
             const newToken = JWT.generate({ _id: payload._id, username: payload.username }, (1000 * 60 * 5).toString());// 重新计算 过期时间 5 分钟
+             // 新生成的 newToken 存入 数据库 users 表
+             const newdata = await loginModel.setData('users', {token:newToken,id:payload.id},'id');
+             console.log(newdata)
             /*  建议：默认不成文的规范
               后端返回 token时 放在header中 如： ctx.set(自定义字段名，value) // 通常 token的 字段名为 authorization 如下
               设置 token 的 字段名 必须前后端 约定好 使用同一个字段 
@@ -69,8 +78,19 @@ app.use(async (ctx, next) => {
 })
 // 将 导入的路由 注册成 应用级中间件
 app.use(router.routes()).use(router.allowedMethods())
+// 注册  - 错误中间件 渲染 error.ejs 模板页
+app.use(async ( ctx, next)=>{
+    let message = ctx.response.message;
+    let error = ctx.app.env === 'development' ? ctx : {};
+    // 设置 状态码
+    ctx.response.status = ctx.response.status || 500;
+    // 渲染 自定义 error.ejs 模板页 + 传入错误信息数据
+   await ctx.render('error',{message,error})
+  });
 
 
-app.listen(4399, () => {
-    console.log('OK,服务器创建成功-回调')
-})
+// app.listen(4399, () => {
+//     console.log('OK,服务器创建成功-回调')
+// })
+
+module.exports = app;

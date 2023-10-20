@@ -71,6 +71,7 @@
 
         // 统一在拦截器中 获取后端设置在header头里面的token字段（前后端 共同约定的：Authorization）
         const { authorization } = response.headers;// header头里面的Authorization 为小写
+        console.log(' axios 拦截器', response.headers)
         // 如果后端返回的Authorization为真， 存入 本地
         authorization && localStorage.setItem('token', authorization)
         // Any status code that lie within the range of 2xx cause this function to trigger
@@ -94,23 +95,11 @@
 
 <script src="/js/util.js"></script>
 <script>
+    var defaultUser= '123123';
     // 用户列表
-    let  chatUsers = JSON.parse(localStorage.getItem('chatUsers'));
-    let User = localStorage.getItem('User');
-    let defaultUser='AAA'
-        if(!chatUsers){
-            // 设置自己假的 用户id 
-            localStorage.setItem('chatUsers',JSON.stringify([defaultUser]))
-            localStorage.setItem('User',defaultUser)
-        }else{
-            defaultUser = chatUsers+(Number(chatUsers.length)+1);
-            localStorage.setItem('User',defaultUser)
-            chatUsers.push(defaultUser)
-            localStorage.setItem('chatUsers',JSON.stringify(chatUsers))
-        }
-    
+    let token = localStorage.getItem('token');
     document.querySelector('.User').innerHTML='userId:'+defaultUser;
-     // 客户端 创建  websocket
+     // 客户端 创建  websocket 建立连接 携带登录成功后端返回的 token 后端验证
      const ws = new WebSocket('ws://localhost:8080');
     // WebSocket 对象有两个方法：send()和close()。send方法去发送消息。
     //连接 成功后触发回调 - 一旦服务端响应WebSocket连接请求，就会触发open事件。响应的回调函数称为onopen。

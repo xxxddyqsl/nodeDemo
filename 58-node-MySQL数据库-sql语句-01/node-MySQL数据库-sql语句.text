@@ -50,7 +50,10 @@ sql语句：
         (1)基本命令语法：显示所有数据库
         命令语法：
         命令：show databases;
-            
+        
+         查看当前所在数据库的名字
+        select database();
+
         (2)显示某个数据库的数据结构：
         命令语法：
         命令：show create database 数据库名称;(如：show create database xingxin_test; )
@@ -62,7 +65,7 @@ sql语句：
 
     1-4.删除数据库：
         (1)基本语法：
-        命令：drop database 数据库名称; (如： drop database xingxin_test  )
+        命令：drop database 数据库名称; (如： drop database xingxin_test;  )
 
 
 2.数据表的基本操作：
@@ -92,6 +95,7 @@ sql语句：
     3-1. 选择数据库
     命令：use 数据库名; ( 如 use xingxin_test;)
 
+     
     3-2.显示所有数据表（当前所在的 数据库）
     命令：show tables;
     3-2. 查询表内的结构 字段就字段类型

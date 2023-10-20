@@ -100,9 +100,9 @@
             console.log(res);
             // res.data  获取后端返回的 数据
             // alert(`${res.data.Message}`)
-            // if(res.data.Code==0){
-            //     window.location.href = './chat'
-            // }
+            if(res.data.Code==0){
+                window.location.href = './chat'
+            }
         }) .catch(function (error) {
             console.log(error);
         });

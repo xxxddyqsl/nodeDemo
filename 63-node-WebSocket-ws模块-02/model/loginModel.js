@@ -12,5 +12,33 @@ const loginModel = {
         // 语句： select from 表名 别名 inner join（联表查询方式） on（条件）  where 过滤条件
         return data;
     },
+    setData: async (fromName,msg,whereName='id')=>{// fromName 表名 msg 更新的内容 如果传入的 whereName 更新数据条件为 undefined或未传 使用设置 whereName 默认值 id
+        // 基本语法：  update 数据表名称 set 字段1=更新后的值，字段2=更新后的值 ....where 更新条件;
+        //  update students set name = '小黑',score = 90 where id = 4;
+        // 更新的条件 必须存在
+        if(!msg[whereName]){
+            return;
+        }
+        // 更新条件
+        let isWhere=null;
+        let seNameV=[];
+        // 提取 更新条件 + 更新的内容
+        for(let key in msg){
+            if(key == whereName){
+                isWhere=`${key} = ${msg[key]}`
+            }else{
+                let val;
+                if(typeof msg[key] == 'string'){
+                    val = `'${msg[key]}'`
+                }else{
+                    val = msg[key];
+                }
+                seNameV.push(`${key} = ${val}`)
+            }
+        }
+        // 修改设置表的数据
+        const data = await promisePool.query(`update ${fromName} set ${seNameV.join()} where ${isWhere} ;`);
+        return data;
+    }
 }
 module.exports = loginModel;
